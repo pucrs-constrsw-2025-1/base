@@ -54,10 +54,12 @@ services:
         - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
         - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
         - KEYCLOAK_GRANT_TYPE=${KEYCLOAK_GRANT_TYPE}
+        - OAUTH_INTERNAL_DEBUG_PORT=${OAUTH_INTERNAL_DEBUG_PORT} # Optional debug port
       networks:
         - constrsw
       ports:
         - ${OAUTH_INTERNAL_PORT}:${OAUTH_INTERNAL_PORT}
+        - ${OAUTH_INTERNAL_DEBUG_PORT}:${OAUTH_INTERNAL_DEBUG_PORT} # Only if debugging
       depends_on:
         keycloak:
           condition: service_healthy
