@@ -531,8 +531,13 @@
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": [
-        "default-roles-construcao-sw"
+         "default-roles-construcao-sw"
       ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-users"
+        ]
+      },
       "notBefore": 0,
       "groups": []
     },
