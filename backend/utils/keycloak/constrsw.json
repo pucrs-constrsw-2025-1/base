@@ -88,15 +88,11 @@
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
-          "realm": [
-            "offline_access",
-            "uma_authorization",
-            "USER"
-          ],
           "client": {
-            "account": [
-              "manage-account",
-              "view-profile"
+            "realm-management": [
+              "manage-users",
+              "view-users",
+              "query-users"
             ]
           }
         },
@@ -531,16 +527,22 @@
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": [
-         "default-roles-construcao-sw"
+        "default-roles-construcao-sw"
       ],
       "clientRoles": {
         "realm-management": [
-          "manage-users"
+          "manage-users",
+          "view-users",
+          "query-users",
+          "manage-roles",
+          "view-realm",
+          "view-clients",
+          "manage-clients"
         ]
       },
       "notBefore": 0,
       "groups": []
-    },
+    },    
     {
       "id": "2db9407c-baa2-4c50-bb01-b90ac89e1d71",
       "username": "admin@pucrs.br",
