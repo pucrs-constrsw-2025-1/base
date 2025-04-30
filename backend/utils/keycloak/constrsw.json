@@ -533,10 +533,11 @@
         "realm-management": [
           "manage-users",
           "view-users",
-          "query-users",
-          "manage-roles",
           "view-realm",
-          "view-clients",
+          "query-users",
+          "manage-realm",
+          "query-realm",
+          "query-clients",
           "manage-clients"
         ]
       },
