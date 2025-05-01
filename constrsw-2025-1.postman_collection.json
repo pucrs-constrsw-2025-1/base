@@ -1,345 +1,356 @@
 {
 	"info": {
-		"_postman_id": "32877930-6555-4a5a-82c1-72c2838c96dc",
-		"name": "constrsw-2025-1",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "40114601"
+		"_postman_id": "generated-uuid-oauth-full-collection",
+		"name": "OAuth API - Completa",
+		"description": "Coleção completa para autenticação, usuários e roles.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "OAuth",
+			"name": "Auth",
 			"item": [
 				{
-					"name": "Auth",
-					"item": [
-						{
-							"name": "Login",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"var jsonData = JSON.parse(responseBody);",
-											"postman.setEnvironmentVariable(\"token\", jsonData.access_token);",
-											"postman.setEnvironmentVariable(\"refresh_token\", jsonData.refresh_token);"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/x-www-form-urlencoded"
-									}
-								],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"key": "client_id",
-											"value": "oauth",
-											"type": "text"
-										},
-										{
-											"key": "username",
-											"value": "admin@pucrs.br",
-											"type": "text"
-										},
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "text"
-										},
-										{
-											"key": "grant_type",
-											"value": "password",
-											"type": "text"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{oauth-url}}/login",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"login"
-									]
-								},
-								"description": "Autenticação de usuário usando credenciais"
-							},
-							"response": []
-						},
-						{
-							"name": "Refresh Token",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"var jsonData = JSON.parse(responseBody);",
-											"postman.setEnvironmentVariable(\"token\", jsonData.access_token);",
-											"postman.setEnvironmentVariable(\"refresh_token\", jsonData.refresh_token);"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"key": "refresh_token",
-											"value": "{{refresh_token}}",
-											"type": "text"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{oauth-url}}/refresh",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"refresh"
-									]
-								},
-								"description": "Renovação de token usando refresh token"
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Users",
-					"item": [
-						{
-							"name": "Create User",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{token}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"novo.usuario@example.com\",\r\n    \"email\": \"novo.usuario@example.com\",\r\n    \"firstName\": \"Novo\",\r\n    \"lastName\": \"Usuário\",\r\n    \"password\": \"senha123\",\r\n    \"enabled\": true,\r\n    \"emailVerified\": false\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{oauth-url}}/users",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"users"
-									]
-								},
-								"description": "Criação de um novo usuário via API"
-							},
-							"response": []
-						},
-						{
-							"name": "Get All Users",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{token}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{oauth-url}}/users",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"users"
-									]
-								},
-								"description": "Listar todos os usuários cadastrados e habilitados"
-							},
-							"response": []
-						},
-						{
-							"name": "Get User By ID",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{token}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{oauth-url}}/users/{{user_id}}",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"users",
-										"{{user_id}}"
-									]
-								},
-								"description": "Recuperar um usuário específico pelo ID"
-							},
-							"response": []
-						},
-						{
-							"name": "Update User",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{token}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"usuario.atualizado@example.com\",\r\n    \"email\": \"usuario.atualizado@example.com\",\r\n    \"firstName\": \"Usuário\",\r\n    \"lastName\": \"Atualizado\",\r\n    \"enabled\": true,\r\n    \"emailVerified\": true\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{oauth-url}}/users/{{user_id}}",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"users",
-										"{{user_id}}"
-									]
-								},
-								"description": "Atualizar dados de um usuário existente"
-							},
-							"response": []
-						},
-						{
-							"name": "Delete User",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{token}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{oauth-url}}/users/{{user_id}}",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"users",
-										"{{user_id}}"
-									]
-								},
-								"description": "Exclusão lógica de um usuário (desativação)"
-							},
-							"response": []
-						},
-						{
-							"name": "Update Password",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{token}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PATCH",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"password\": \"novaSenha123\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{oauth-url}}/users/{{user_id}}/password",
-									"host": [
-										"{{oauth-url}}"
-									],
-									"path": [
-										"users",
-										"{{user_id}}",
-										"password"
-									]
-								},
-								"description": "Atualização da senha de um usuário"
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Health",
+					"name": "Login",
 					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{oauth-url}}/health",
-							"host": [
-								"{{oauth-url}}"
-							],
-							"path": [
-								"health"
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{ "key": "client_id", "value": "oauth", "type": "text" },
+								{ "key": "username", "value": "{{username}}", "type": "text" },
+								{ "key": "password", "value": "{{password}}", "type": "text" },
+								{ "key": "grant_type", "value": "password", "type": "text" }
 							]
 						},
-						"description": "Verificação de saúde da API"
-					},
-					"response": []
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						},
+						"description": "Autenticar usuário e obter token."
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [ ],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{ "key": "refresh_token", "value": "{{refresh_token}}", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["refresh"]
+						},
+						"description": "Renovar token de acesso."
+					}
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [ ],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Verificar status da API."
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"password\": \"password123\",\n  \"enabled\": true,\n  \"emailVerified\": true\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["users"]
+						},
+						"description": "Criar novo usuário."
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["users"]
+						},
+						"description": "Listar todos os usuários."
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/users/{{userId}}",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Buscar usuário por ID."
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"updateduser\",\n  \"email\": \"updated@example.com\",\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\",\n  \"enabled\": true,\n  \"emailVerified\": true\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/users/{{userId}}",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Atualizar usuário por ID."
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/users/{{userId}}",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Excluir usuário por ID."
+					}
+				},
+				{
+					"name": "Update Password",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"novaSenha123\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/users/{{userId}}/password",
+							"host": ["{{base_url}}"],
+							"path": ["users", "{{userId}}", "password"]
+						},
+						"description": "Atualizar senha do usuário."
+					}
+				}
+			]
+		},
+		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "Get All Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": ["{{base_url}}"],
+							"path": ["roles"]
+						},
+						"description": "Listar todos os roles."
+					}
+				},
+				{
+					"name": "Get Role by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/{{roleId}}",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "{{roleId}}"]
+						},
+						"description": "Buscar role por ID (UUID)."
+					}
+				},
+				{
+					"name": "Create Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"new-role\",\n  \"description\": \"A new role\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": ["{{base_url}}"],
+							"path": ["roles"]
+						},
+						"description": "Criar um novo role."
+					}
+				},
+				{
+					"name": "Update Role",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"updated-role\",\n  \"description\": \"Updated description\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/roles/{{roleId}}",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "{{roleId}}"]
+						},
+						"description": "Atualizar um role por ID (total)."
+					}
+				},
+				{
+					"name": "Patch Role",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Atualização parcial\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/roles/{{roleId}}",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "{{roleId}}"]
+						},
+						"description": "Atualizar parcialmente um role por ID. Envie apenas os campos a serem alterados."
+					}
+				},
+				{
+					"name": "Delete Role (Logical)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/{{roleId}}",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "{{roleId}}"]
+						},
+						"description": "Exclusão lógica de um role por ID."
+					}
+				},
+				{
+					"name": "Assign Role to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/assign/{{userId}}/{{roleId}}",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "assign", "{{userId}}", "{{roleId}}"]
+						},
+						"description": "Atribuir um role a um usuário."
+					}
+				},
+				{
+					"name": "Remove Role from User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/assign/{{userId}}/{{roleId}}",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "assign", "{{userId}}", "{{roleId}}"]
+						},
+						"description": "Remover um role de um usuário."
+					}
 				}
 			]
 		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:8080", "type": "string", "description": "Base URL da API" },
+		{ "key": "access_token", "value": "", "type": "string", "description": "Token de acesso OAuth" },
+		{ "key": "refresh_token", "value": "", "type": "string", "description": "Refresh token OAuth" },
+		{ "key": "userId", "value": "", "type": "string", "description": "ID do usuário" },
+		{ "key": "roleId", "value": "", "type": "string", "description": "ID (UUID) do role" },
+		{ "key": "username", "value": "admin@pucrs.br", "type": "string", "description": "Usuário para autenticação" },
+		{ "key": "password", "value": "novaSenha123", "type": "string", "description": "Senha para autenticação" }
 	]
 } 
