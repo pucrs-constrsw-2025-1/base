@@ -212,6 +212,112 @@
 								"description": "Recuperar um usuário específico pelo ID"
 							},
 							"response": []
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"usuario.atualizado@example.com\",\r\n    \"email\": \"usuario.atualizado@example.com\",\r\n    \"firstName\": \"Usuário\",\r\n    \"lastName\": \"Atualizado\",\r\n    \"enabled\": true,\r\n    \"emailVerified\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{oauth-url}}/users/{{user_id}}",
+									"host": [
+										"{{oauth-url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}"
+									]
+								},
+								"description": "Atualizar dados de um usuário existente"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{oauth-url}}/users/{{user_id}}",
+									"host": [
+										"{{oauth-url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}"
+									]
+								},
+								"description": "Exclusão lógica de um usuário (desativação)"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Password",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"password\": \"novaSenha123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{oauth-url}}/users/{{user_id}}/password",
+									"host": [
+										"{{oauth-url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}",
+										"password"
+									]
+								},
+								"description": "Atualização da senha de um usuário"
+							},
+							"response": []
 						}
 					]
 				},
