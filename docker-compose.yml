@@ -62,6 +62,9 @@ services:
       - KEYCLOAK_EXTERNAL_PORT=${KEYCLOAK_EXTERNAL_PORT}
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ./backend/oauth:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --reload --port ${OAUTH_INTERNAL_PORT}
     networks:
       - constrsw
     ports:
