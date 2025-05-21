@@ -1,0 +1,7 @@
+volumes:
+    constrsw-keycloak-data:
+      external: false
+    constrsw-postgresql-data:
+      external: false
+    constrsw-mongodb-data:
+      external: false

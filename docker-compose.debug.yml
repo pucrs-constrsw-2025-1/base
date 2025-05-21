@@ -1,0 +1,5 @@
+services:
+  oauth:
+    ports:
+     - ${OAUTH_INTERNAL_DEBUG_PORT}:${OAUTH_INTERNAL_DEBUG_PORT}
+    entrypoint: java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${OAUTH_INTERNAL_DEBUG_PORT} -jar /app/target/oauth-0.0.1-SNAPSHOT.jar
