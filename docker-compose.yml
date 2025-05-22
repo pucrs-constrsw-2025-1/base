@@ -40,31 +40,35 @@ services:
       timeout: 10s
       retries: 10
     restart: always
+  # # OAuth
   oauth:
-      container_name: oauth
-      build:
-        context: ./backend/oauth        # aponte para o submódulo oauth
-        dockerfile: Dockerfile
-      image: constrsw/oauth
-      environment:
-        - KEYCLOAK_BASE_URL=http://keycloak:8080
-        - KEYCLOAK_REALM=constrsw
-        - KEYCLOAK_CLIENT_ID=oauth
-        - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
-      networks:
-        - constrsw
-      ports:
-        - "3000:3000"                   # expõe a porta 3000 do container no host
-      depends_on:
-        keycloak:
-          condition: service_healthy
-      healthcheck:
-        test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-      restart: always
-  # # PostgreSQL
+    container_name: oauth
+    build:
+      context: ./backend/oauth/
+      dockerfile: Dockerfile
+    image: constrsw/oauth
+    environment:
+      - KEYCLOAK_INTERNAL_HOST=${KEYCLOAK_INTERNAL_HOST}
+      - KEYCLOAK_INTERNAL_PORT=${KEYCLOAK_INTERNAL_PORT}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_GRANT_TYPE=${KEYCLOAK_GRANT_TYPE}
+    networks:
+      - constrsw
+    ports:
+      - ${OAUTH_INTERNAL_PORT}:${OAUTH_INTERNAL_PORT}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://${OAUTH_INTERNAL_HOST}:${OAUTH_INTERNAL_PORT}/health" ]
+      start_period: 60s
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    restart: always
+  # PostgreSQL
   # postgresql:
   #   container_name: postgresql
   #   build:
