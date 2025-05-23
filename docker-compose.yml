@@ -63,7 +63,7 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
+      test: ["CMD-SHELL", "curl -fs http://localhost:8000/health || exit 1"]
 #      test: [ "CMD-SHELL", "curl -f http://oauth:8000/health" ]
       interval: 20s
       timeout: 10s
@@ -201,8 +201,8 @@ services:
 #        condition: service_healthy
       mongodb:
         condition: service_healthy
-#      oauth:
-#        condition: service_healthy
+      oauth:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
 #      test: [ "CMD-SHELL", "curl -f http://${COURSES_INTERNAL_HOST}:${COURSES_INTERNAL_PORT}/health" ]
