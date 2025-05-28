@@ -26,12 +26,13 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}/login",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/login",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["login"]
 						},
 						"description": "Autenticar usuário e obter token."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Refresh Token",
@@ -45,12 +46,29 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}/refresh",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/refresh",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["refresh"]
 						},
 						"description": "Renovar token de acesso."
-					}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+						],
+						"url": {
+							"raw": "{{oauth_base_url}}/validate",
+							"host": ["{{oauth_base_url}}"],
+							"path": ["validate"]
+						},
+						"description": "Validar token de acesso."
+					},
+					"response": []
 				},
 				{
 					"name": "Health Check",
@@ -58,12 +76,13 @@
 						"method": "GET",
 						"header": [ ],
 						"url": {
-							"raw": "{{base_url}}/health",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/health",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["health"]
 						},
 						"description": "Verificar status da API."
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -84,12 +103,13 @@
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
-							"raw": "{{base_url}}/users",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/users",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["users"]
 						},
 						"description": "Criar novo usuário."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get All Users",
@@ -99,12 +119,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/users",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/users",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["users"]
 						},
 						"description": "Listar todos os usuários."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get User by ID",
@@ -114,12 +135,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/users/{{userId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/users/{{userId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["users", "{{userId}}"]
 						},
 						"description": "Buscar usuário por ID."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Update User",
@@ -135,12 +157,13 @@
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
-							"raw": "{{base_url}}/users/{{userId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/users/{{userId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["users", "{{userId}}"]
 						},
 						"description": "Atualizar usuário por ID."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Delete User",
@@ -150,12 +173,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/users/{{userId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/users/{{userId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["users", "{{userId}}"]
 						},
 						"description": "Excluir usuário por ID."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Update Password",
@@ -171,12 +195,13 @@
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
-							"raw": "{{base_url}}/users/{{userId}}/password",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/users/{{userId}}/password",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["users", "{{userId}}", "password"]
 						},
 						"description": "Atualizar senha do usuário."
-					}
+					},
+					"response": []
 				}
 			]
 		},
@@ -191,12 +216,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/roles",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles"]
 						},
 						"description": "Listar todos os roles."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Get Role by ID",
@@ -206,12 +232,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/roles/{{roleId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles/{{roleId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles", "{{roleId}}"]
 						},
 						"description": "Buscar role por ID (UUID)."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Create Role",
@@ -227,12 +254,13 @@
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
-							"raw": "{{base_url}}/roles",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles"]
 						},
 						"description": "Criar um novo role."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Update Role",
@@ -248,12 +276,13 @@
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
-							"raw": "{{base_url}}/roles/{{roleId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles/{{roleId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles", "{{roleId}}"]
 						},
 						"description": "Atualizar um role por ID (total)."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Patch Role",
@@ -269,12 +298,13 @@
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
-							"raw": "{{base_url}}/roles/{{roleId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles/{{roleId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles", "{{roleId}}"]
 						},
 						"description": "Atualizar parcialmente um role por ID. Envie apenas os campos a serem alterados."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Delete Role (Logical)",
@@ -284,12 +314,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/roles/{{roleId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles/{{roleId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles", "{{roleId}}"]
 						},
 						"description": "Exclusão lógica de um role por ID."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Assign Role to User",
@@ -299,12 +330,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/roles/assign/{{userId}}/{{roleId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles/assign/{{userId}}/{{roleId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles", "assign", "{{userId}}", "{{roleId}}"]
 						},
 						"description": "Atribuir um role a um usuário."
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Remove Role from User",
@@ -314,12 +346,13 @@
 							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
 						],
 						"url": {
-							"raw": "{{base_url}}/roles/assign/{{userId}}/{{roleId}}",
-							"host": ["{{base_url}}"],
+							"raw": "{{oauth_base_url}}/roles/assign/{{userId}}/{{roleId}}",
+							"host": ["{{oauth_base_url}}"],
 							"path": ["roles", "assign", "{{userId}}", "{{roleId}}"]
 						},
 						"description": "Remover um role de um usuário."
-					}
+					},
+					"response": []
 				}
 			]
 		}
@@ -345,7 +378,7 @@
 		}
 	],
 	"variable": [
-		{ "key": "base_url", "value": "http://localhost:8080", "type": "string", "description": "Base URL da API" },
+		{ "key": "oauth_base_url", "value": "http://localhost:8080", "type": "string", "description": "Base URL da API OAuth" },
 		{ "key": "access_token", "value": "", "type": "string", "description": "Token de acesso OAuth" },
 		{ "key": "refresh_token", "value": "", "type": "string", "description": "Refresh token OAuth" },
 		{ "key": "userId", "value": "", "type": "string", "description": "ID do usuário" },
