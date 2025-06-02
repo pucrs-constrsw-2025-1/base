@@ -28,12 +28,11 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
 							{ "key": "Content-Type", "value": "application/json", "type": "text" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"roomNumber\": \"201\",\n  \"building\": \"32\",\n  \"floor\": 2,\n  \"capacity\": 40,\n  \"type\": \"CLASSROOM\",\n  \"description\": \"Sala de aula com projetor e computadores\",\n  \"hasProjector\": true,\n  \"hasAirConditioning\": true,\n  \"hasBoardroom\": false,\n  \"hasAccessibility\": true\n}",
+							"raw": "{\n  \"buildingNumber\": \"32\",\n  \"roomNumber\": \"201\",\n  \"capacity\": 40,\n  \"floor\": \"2\"\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
@@ -46,12 +45,72 @@
 					"response": []
 				},
 				{
+					"name": "Get All Rooms (Simple Filters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{rooms_base_url}}/rooms?buildingNumber=32&floor=2&capacity=40",
+							"host": ["{{rooms_base_url}}"],
+							"path": ["rooms"],
+							"query": [
+								{
+									"key": "buildingNumber",
+									"value": "32",
+									"description": "Número do prédio"
+								},
+								{
+									"key": "floor",
+									"value": "2",
+									"description": "Andar"
+								},
+								{
+									"key": "capacity",
+									"value": "40",
+									"description": "Capacidade"
+								}
+							]
+						},
+						"description": "Listar salas com filtros simples (igualdade exata).\n\nFiltros disponíveis:\n- buildingNumber: número do prédio\n- roomNumber: número da sala\n- capacity: capacidade\n- floor: andar"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Rooms (Complex Filters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{rooms_base_url}}/rooms/search?capacity.gt=30&floor.eq=2&buildingNumber.like=32",
+							"host": ["{{rooms_base_url}}"],
+							"path": ["rooms", "search"],
+							"query": [
+								{
+									"key": "capacity.gt",
+									"value": "30",
+									"description": "Capacidade maior que 30"
+								},
+								{
+									"key": "floor.eq",
+									"value": "2",
+									"description": "Andar igual a 2"
+								},
+								{
+									"key": "buildingNumber.like",
+									"value": "32",
+									"description": "Número do prédio contém 32"
+								}
+							]
+						},
+						"description": "Buscar salas com filtros complexos.\n\nOperadores disponíveis (usar com notação de ponto, ex: capacity.gt=30):\n- eq: igual\n- neq: diferente\n- gt: maior que\n- gteq: maior ou igual\n- lt: menor que\n- lteq: menor ou igual\n- like: contém\n\nCampos disponíveis:\n- buildingNumber\n- roomNumber\n- capacity\n- floor"
+					},
+					"response": []
+				},
+				{
 					"name": "Get All Rooms",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/rooms",
 							"host": ["{{rooms_base_url}}"],
@@ -62,12 +121,38 @@
 					"response": []
 				},
 				{
+					"name": "Get Rooms with Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{rooms_base_url}}/rooms?capacity{gt}=30&floor{eq}=2&buildingNumber{like}=32",
+							"host": ["{{rooms_base_url}}"],
+							"path": ["rooms"],
+							"query": [
+								{
+									"key": "capacity{gt}",
+									"value": "30"
+								},
+								{
+									"key": "floor{eq}",
+									"value": "2"
+								},
+								{
+									"key": "buildingNumber{like}",
+									"value": "32"
+								}
+							]
+						},
+						"description": "Listar salas com filtros. Operadores disponíveis:\n- eq: igual\n- neq: diferente\n- gt: maior que\n- gteq: maior ou igual\n- lt: menor que\n- lteq: menor ou igual\n- like: contém\n\nCampos disponíveis:\n- buildingNumber\n- roomNumber\n- capacity\n- floor"
+					},
+					"response": []
+				},
+				{
 					"name": "Get Room by ID",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/rooms/{{roomId}}",
 							"host": ["{{rooms_base_url}}"],
@@ -82,12 +167,11 @@
 					"request": {
 						"method": "PUT",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
 							{ "key": "Content-Type", "value": "application/json", "type": "text" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"roomNumber\": \"201\",\n  \"building\": \"32\",\n  \"floor\": 2,\n  \"capacity\": 45,\n  \"type\": \"CLASSROOM\",\n  \"description\": \"Sala de aula com projetor, computadores e ar-condicionado\",\n  \"hasProjector\": true,\n  \"hasAirConditioning\": true,\n  \"hasBoardroom\": true,\n  \"hasAccessibility\": true\n}",
+							"raw": "{\n  \"buildingNumber\": \"32\",\n  \"roomNumber\": \"201\",\n  \"capacity\": 45,\n  \"floor\": \"2\"\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
@@ -100,12 +184,31 @@
 					"response": []
 				},
 				{
+					"name": "Patch Room",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"capacity\": 50,\n  \"floor\": \"2\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{rooms_base_url}}/rooms/{{roomId}}",
+							"host": ["{{rooms_base_url}}"],
+							"path": ["rooms", "{{roomId}}"]
+						},
+						"description": "Atualizar parcialmente uma sala existente"
+					},
+					"response": []
+				},
+				{
 					"name": "Delete Room",
 					"request": {
 						"method": "DELETE",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/rooms/{{roomId}}",
 							"host": ["{{rooms_base_url}}"],
@@ -125,12 +228,11 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
 							{ "key": "Content-Type", "value": "application/json", "type": "text" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Aula Regular\",\n  \"description\": \"Aulas regulares do semestre\",\n  \"color\": \"#4CAF50\"\n}",
+							"raw": "{\n  \"name\": \"Aula Regular\"\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
@@ -146,9 +248,7 @@
 					"name": "Get All Event Types",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/event-types",
 							"host": ["{{rooms_base_url}}"],
@@ -162,9 +262,7 @@
 					"name": "Get Event Type by ID",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/event-types/{{eventTypeId}}",
 							"host": ["{{rooms_base_url}}"],
@@ -179,12 +277,11 @@
 					"request": {
 						"method": "PUT",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
 							{ "key": "Content-Type", "value": "application/json", "type": "text" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Aula Regular Atualizada\",\n  \"description\": \"Aulas regulares do semestre (versão atualizada)\",\n  \"color\": \"#2196F3\"\n}",
+							"raw": "{\n  \"name\": \"Aula Regular Atualizada\"\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
@@ -200,15 +297,34 @@
 					"name": "Delete Event Type",
 					"request": {
 						"method": "DELETE",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/event-types/{{eventTypeId}}",
 							"host": ["{{rooms_base_url}}"],
 							"path": ["event-types", "{{eventTypeId}}"]
 						},
 						"description": "Excluir um tipo de evento pelo ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Event Type",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Aula Regular - Nome Atualizado\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{rooms_base_url}}/event-types/{{eventTypeId}}",
+							"host": ["{{rooms_base_url}}"],
+							"path": ["event-types", "{{eventTypeId}}"]
+						},
+						"description": "Atualizar parcialmente um tipo de evento existente"
 					},
 					"response": []
 				}
@@ -222,12 +338,11 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
 							{ "key": "Content-Type", "value": "application/json", "type": "text" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Aula de Engenharia de Software\",\n  \"description\": \"Aula sobre métodos ágeis\",\n  \"startTime\": \"2023-10-30T14:00:00\",\n  \"endTime\": \"2023-10-30T15:30:00\",\n  \"roomId\": {{roomId}},\n  \"eventTypeId\": {{eventTypeId}},\n  \"createdBy\": \"professor@email.com\",\n  \"recurring\": true,\n  \"recurrencePattern\": \"WEEKLY\",\n  \"recurrenceEndDate\": \"2023-12-15\"\n}",
+							"raw": "{\n  \"title\": \"Aula de Engenharia de Software\",\n  \"description\": \"Aula sobre métodos ágeis\",\n  \"date\": \"2024-05-30T14:00:00\",\n  \"roomId\": \"{{roomId}}\",\n  \"eventTypeId\": \"{{eventTypeId}}\"\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
@@ -243,9 +358,7 @@
 					"name": "Get All Events",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/events",
 							"host": ["{{rooms_base_url}}"],
@@ -259,9 +372,7 @@
 					"name": "Get Events by Room",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/events/room/{{roomId}}",
 							"host": ["{{rooms_base_url}}"],
@@ -275,9 +386,7 @@
 					"name": "Get Event by ID",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/events/{{eventId}}",
 							"host": ["{{rooms_base_url}}"],
@@ -292,12 +401,11 @@
 					"request": {
 						"method": "PUT",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
 							{ "key": "Content-Type", "value": "application/json", "type": "text" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Aula de Engenharia de Software - Atualizada\",\n  \"description\": \"Aula sobre DevOps e CI/CD\",\n  \"startTime\": \"2023-10-30T14:30:00\",\n  \"endTime\": \"2023-10-30T16:00:00\",\n  \"roomId\": {{roomId}},\n  \"eventTypeId\": {{eventTypeId}},\n  \"createdBy\": \"professor@email.com\",\n  \"recurring\": true,\n  \"recurrencePattern\": \"WEEKLY\",\n  \"recurrenceEndDate\": \"2023-12-15\"\n}",
+							"raw": "{\n  \"title\": \"Aula de Engenharia de Software - Atualizada\",\n  \"description\": \"Aula sobre DevOps e CI/CD\",\n  \"date\": \"2024-05-30T14:30:00\",\n  \"roomId\": \"{{roomId}}\",\n  \"eventTypeId\": \"{{eventTypeId}}\"\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": {
@@ -313,9 +421,7 @@
 					"name": "Delete Event",
 					"request": {
 						"method": "DELETE",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
 							"raw": "{{rooms_base_url}}/events/{{eventId}}",
 							"host": ["{{rooms_base_url}}"],
@@ -326,22 +432,37 @@
 					"response": []
 				},
 				{
-					"name": "Get Events by Date Range",
+					"name": "Get Events by Event Type",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-						],
+						"header": [],
 						"url": {
-							"raw": "{{rooms_base_url}}/events/range?startDate=2023-10-01&endDate=2023-10-31",
+							"raw": "{{rooms_base_url}}/events/type/{{eventTypeId}}",
 							"host": ["{{rooms_base_url}}"],
-							"path": ["events", "range"],
-							"query": [
-								{ "key": "startDate", "value": "2023-10-01" },
-								{ "key": "endDate", "value": "2023-10-31" }
-							]
+							"path": ["events", "type", "{{eventTypeId}}"]
 						},
-						"description": "Buscar eventos em um intervalo de datas"
+						"description": "Listar eventos de um tipo específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Event",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Aula de Engenharia de Software - Título Atualizado\",\n  \"description\": \"Nova descrição da aula\",\n  \"date\": \"2024-05-30T15:00:00\",\n  \"roomId\": \"{{roomId}}\",\n  \"eventTypeId\": \"{{eventTypeId}}\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{rooms_base_url}}/events/{{eventId}}",
+							"host": ["{{rooms_base_url}}"],
+							"path": ["events", "{{eventId}}"]
+						},
+						"description": "Atualizar parcialmente um evento existente"
 					},
 					"response": []
 				}
@@ -369,10 +490,29 @@
 		}
 	],
 	"variable": [
-		{ "key": "rooms_base_url", "value": "http://localhost:8084", "type": "string", "description": "Base URL da API Rooms" },
-		{ "key": "access_token", "value": "", "type": "string", "description": "Token de acesso OAuth" },
-		{ "key": "roomId", "value": "1", "type": "string", "description": "ID da sala" },
-		{ "key": "eventTypeId", "value": "1", "type": "string", "description": "ID do tipo de evento" },
-		{ "key": "eventId", "value": "1", "type": "string", "description": "ID do evento" }
+		{
+			"key": "rooms_base_url",
+			"value": "http://localhost:8084",
+			"type": "string",
+			"description": "Base URL da API Rooms"
+		},
+		{
+			"key": "roomId",
+			"value": "123e4567-e89b-12d3-a456-426614174000",
+			"type": "string",
+			"description": "ID da sala (UUID)"
+		},
+		{
+			"key": "eventTypeId",
+			"value": "123e4567-e89b-12d3-a456-426614174001",
+			"type": "string",
+			"description": "ID do tipo de evento (UUID)"
+		},
+		{
+			"key": "eventId",
+			"value": "123e4567-e89b-12d3-a456-426614174002",
+			"type": "string",
+			"description": "ID do evento (UUID)"
+		}
 	]
 } 
