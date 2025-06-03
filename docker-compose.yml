@@ -70,36 +70,40 @@ services:
       start_period: 90s
       retries: 5
     restart: always
+
   # PostgreSQL
-  # postgresql:
-  #   container_name: postgresql
-  #   build:
-  #     context: ./backend/utils/postgresql/
-  #     dockerfile: Dockerfile
-  #     args:
-  #       - POSTGRESQL_HOST_AUTH_METHOD=${POSTGRESQL_HOST_AUTH_METHOD}
-  #       - POSTGRESQL_DATA=${POSTGRESQL_DATA}
-  #   image: constrsw/postgresql
-  #   environment:
-  #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-  #     - POSTGRESQL_INTERNAL_PORT=5432
-  #     - POSTGRES_USER=${POSTGRESQL_USERNAME}
-  #     - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
-  #     - POSTGRESQL_DB=${POSTGRESQL_DB}
-  #   volumes:
-  #     # No terminal, criar o volume externo: docker volume create constrsw-postgresql-data
-  #     - constrsw-postgresql-data:${POSTGRESQL_DATA}
-  #   networks:
-  #     - constrsw
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-  #     start_period: 30s
-  #     interval: 20s
-  #     timeout: 10s
-  #     retries: 10
-  #   restart: always
+  postgresql:
+    container_name: postgresql
+    build:
+      context: ./backend/utils/postgresql/
+      dockerfile: Dockerfile
+      args:
+        - POSTGRESQL_HOST_AUTH_METHOD=${POSTGRESQL_HOST_AUTH_METHOD}
+        - POSTGRESQL_DATA=${POSTGRESQL_DATA}
+    image: constrsw/postgresql
+    environment:
+      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+      - POSTGRESQL_INTERNAL_PORT=5432
+      - POSTGRES_USER=${POSTGRESQL_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_DB=${POSTGRESQL_DB}
+    volumes:
+      # No terminal, criar o volume externo: docker volume create constrsw-postgresql-data
+      - constrsw-postgresql-data:${POSTGRESQL_DATA}
+    networks:
+      - constrsw
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      start_period: 30s
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    restart: always
   #   # psql postgresql://${POSTGRESQL_USERNAME}:${POSTGRESQL_USERNAME}@${POSTGRESQL_INTERNAL_HOST}:${POSTGRESQL_INTERNAL_PORT}
   #   # psql -h ${POSTGRESQL_INTERNAL_HOST} -p ${POSTGRESQL_INTERNAL_PORT} -U ${POSTGRESQL_USERNAME} -P ${POSTGRESQL_PASSWORD} -d database
+
   # # MongoDB
   mongodb:
     container_name: mongodb
