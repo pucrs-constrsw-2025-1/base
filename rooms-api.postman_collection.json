@@ -432,20 +432,6 @@
 					"response": []
 				},
 				{
-					"name": "Get Events by Event Type",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{rooms_base_url}}/events/type/{{eventTypeId}}",
-							"host": ["{{rooms_base_url}}"],
-							"path": ["events", "type", "{{eventTypeId}}"]
-						},
-						"description": "Listar eventos de um tipo específico"
-					},
-					"response": []
-				},
-				{
 					"name": "Patch Event",
 					"request": {
 						"method": "PATCH",
