@@ -241,7 +241,15 @@ services:
       context: ./backend/professors/
       dockerfile: Dockerfile
     image: constrsw/professors
+    env_file:
+      - .env
     environment:
+          # === Postgres (para o TypeORM) ===
+      - DB_HOST=${POSTGRESQL_INTERNAL_HOST}
+      - DB_PORT=${POSTGRESQL_INTERNAL_PORT}
+      - DB_USERNAME=${POSTGRESQL_USERNAME}
+      - DB_PASSWORD=${POSTGRESQL_PASSWORD}
+      - DB_DATABASE=professors
       - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
       - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
       - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
@@ -258,7 +266,7 @@ services:
     networks:
       - constrsw
     ports:
-      - ${PROFESSORS_EXTERNAL_DEBUG_PORT}:${PROFESSORS_INTERNAL_DEBUG_PORT}
+      - "8105:3000"
     depends_on:
       postgresql:
         condition: service_healthy
