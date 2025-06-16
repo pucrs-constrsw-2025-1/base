@@ -1,0 +1,38 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "name": "OAuth Service",
+            "request": "attach",
+            "address": "localhost",
+            "port": 8281,
+            "localRoot": "${workspaceFolder}/backend/oauth",
+            "remoteRoot": "/app",
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/backend/oauth/dist/**/*.js"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/backend/oauth/**",
+                "!**/node_modules/**"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Resources Service",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8287,
+            "projectName": "constrsw/resources",
+            "sourcePaths": [
+                "${workspaceFolder}/backend/resources/src/main/java"
+            ],
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9229"
+        }
+    ]
+}

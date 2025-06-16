@@ -25,9 +25,9 @@
 [submodule "backend/students"]
 	path = backend/students
 	url = https://github.com/pucrs-constrsw-2025-1/students.git
-[submodule "frontend"]
-	path = frontend
-	url = https://github.com/pucrs-constrsw-2025-1/frontend.git
 [submodule "backend/bff"]
 	path = backend/bff
 	url = https://github.com/pucrs-constrsw-2025-1/bff.git
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/pucrs-constrsw-2025-1/campus-resource-access.git

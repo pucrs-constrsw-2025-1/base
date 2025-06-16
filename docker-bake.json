@@ -1,0 +1,111 @@
+{
+  "version": "1",
+  "targets": {
+    "keycloak": {
+      "context": "backend/utils/keycloak",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/keycloak:latest"],
+      "platforms": ["linux/amd64"]
+    },
+    "oauth": {
+      "context": "backend/oauth",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/oauth:latest"],
+      "platforms": ["linux/amd64"]
+    },
+    "postgresql": {
+      "context": "backend/utils/postgresql",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/postgresql:latest"]
+    },
+    "mongodb": {
+      "context": "backend/utils/mongodb",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/mongodb:latest"]
+    },
+    "classes": {
+      "context": "backend/classes",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/classes:latest"]
+    },
+    "courses": {
+      "context": "backend/courses",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/courses:latest"]
+    },
+    "lessons": {
+      "context": "backend/lessons",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/lessons:latest"]
+    },
+    "professors": {
+      "context": "backend/professors",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/professors:latest"]
+    },
+    "reservations": {
+      "context": "backend/reservations",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/reservations:latest"]
+    },
+    "resources": {
+      "context": "backend/resources",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/resources:latest"]
+    },
+    "rooms": {
+      "context": "backend/rooms",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/rooms:latest"]
+    },
+    "students": {
+      "context": "backend/students",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/students:latest"]
+    },
+    "bff": {
+      "context": "backend/bff",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/bff:latest"]
+    },
+    "frontend": {
+      "context": "frontend",
+      "dockerfile": "Dockerfile",
+      "tags": ["constrsw/frontend:latest"]
+    }
+  },
+  "groups": {
+    "default": {
+      "targets": [
+        "keycloak",
+        "oauth"
+      ]
+    },
+    "infrastructure": {
+      "targets": [
+        "keycloak",
+        "oauth",
+        "postgresql",
+        "mongodb"
+      ]
+    },
+    "services": {
+      "targets": [
+        "classes",
+        "courses",
+        "lessons",
+        "professors",
+        "reservations",
+        "resources",
+        "rooms",
+        "students"
+      ]
+    },
+    "frontend": {
+      "targets": [
+        "bff",
+        "frontend"
+      ]
+    }
+  }
+} 
