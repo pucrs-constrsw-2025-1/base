@@ -11,7 +11,6 @@ volumes:
    constrsw-mongodb-data:
       external: true
 services:
-<<<<<<< HEAD
    # Keycloak
    keycloak:
       container_name: keycloak
@@ -31,13 +30,48 @@ services:
       networks:
          - constrsw
       ports:
-         - ${KEYCLOAK_EXTERNAL_PORT}:${KEYCLOAK_INTERNAL_PORT}
+         - ${KEYCLOAK_EXTERNAL_CONSOLE_PORT}:${KEYCLOAK_INTERNAL_CONSOLE_PORT}
       healthcheck:
          test: ["CMD-SHELL", "curl -f ${KEYCLOAK_INTERNAL_HOST}:${KEYCLOAK_INTERNAL_API_PORT}/health"]
-         start_period: 110s
+         start_period: 300s
          interval: 10s
          timeout: 10s
-         retries: 10
+         retries: 50
+      restart: always
+      # OAuth
+   oauth:
+      container_name: oauth
+      build:
+         context: ./backend/oauth
+         dockerfile: Dockerfile
+         target: development
+      image: constrsw/oauth
+      environment:
+         - KEYCLOAK_BASE_URL=${KEYCLOAK_INTERNAL_PROTOCOL}://${KEYCLOAK_INTERNAL_HOST}:${KEYCLOAK_INTERNAL_API_PORT}
+         - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+         - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+         - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+         - KEYCLOAK_GRANT_TYPE=${KEYCLOAK_GRANT_TYPE}
+         - OAUTH_INTERNAL_PROTOCOL=${OAUTH_INTERNAL_PROTOCOL}
+         - OAUTH_INTERNAL_API_PORT=3000
+         - OAUTH_EXTERNAL_API_PORT=8088
+         - NODE_ENV=development
+      networks:
+         - constrsw
+      ports:
+         - "${OAUTH_EXTERNAL_API_PORT}:${OAUTH_INTERNAL_API_PORT}"
+         - "${OAUTH_EXTERNAL_DEBUG_PORT}:${OAUTH_INTERNAL_DEBUG_PORT}"
+      volumes:
+         - ./backend/oauth/src:/app/src
+         - ./backend/oauth/dist:/app/dist
+      depends_on:
+         keycloak:
+            condition: service_healthy
+      healthcheck:
+         test: ["CMD-SHELL", "curl -f http://localhost:${OAUTH_INTERNAL_API_PORT}/health"]
+         interval: 10s
+         timeout: 5s
+         retries: 5
       restart: always
    # PostgreSQL
    postgresql:
@@ -79,9 +113,13 @@ services:
       environment:
          - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
          - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+         - CLASSES_USERNAME=${CLASSES_MONGODB_USERNAME}
+         - CLASSES_PASSWORD=${CLASSES_MONGODB_PASSWORD}
+         - CLASSES_DATABASE=${CLASSES_MONGODB_DATABASE}
       volumes:
          # No terminal, criar o volume externo: docker volume create constrsw-mongodb-data
          - constrsw-mongodb-data:/data/mongodb
+         - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
       networks:
          - constrsw
       healthcheck:
@@ -89,115 +127,92 @@ services:
          start_period: 30s
          interval: 20s
          timeout: 10s
-         retries: 10
+         retries: 20
       restart: always
-   # OAuth
-   oauth:
-      container_name: oauth
+   # Grupo 6
+   # classes
+   classes:
+      container_name: classes
       build:
-         context: ./backend/oauth
+         context: ./backend/classes/
          dockerfile: Dockerfile
-         target: development
-      image: constrsw/oauth
+      image: constrsw/classes
       environment:
-         - KEYCLOAK_BASE_URL=${KEYCLOAK_INTERNAL_PROTOCOL}://${KEYCLOAK_INTERNAL_HOST}:${KEYCLOAK_INTERNAL_API_PORT}
-         - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-         - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-         - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
-         - KEYCLOAK_GRANT_TYPE=${KEYCLOAK_GRANT_TYPE}
-         - OAUTH_INTERNAL_PROTOCOL=${OAUTH_INTERNAL_PROTOCOL}
-         - OAUTH_INTERNAL_API_PORT=3000
-         - OAUTH_EXTERNAL_API_PORT=8088
-         - NODE_ENV=development
+         - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
+         - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+         - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+         - POSTGRESQL_DB=classes
+         - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
+         - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
+         - MONGODB_USERNAME=${CLASSES_MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${CLASSES_MONGODB_PASSWORD}
+         - MONGODB_DB=classes
+         - CLASSES_INTERNAL_PROTOCOL=${CLASSES_INTERNAL_PROTOCOL}
+         - CLASSES_INTERNAL_HOST=${CLASSES_INTERNAL_HOST}
+         - CLASSES_INTERNAL_API_PORT=${CLASSES_INTERNAL_API_PORT}
+         - CLASSES_INTERNAL_DEBUG_PORT=${CLASSES_INTERNAL_DEBUG_PORT}
       networks:
          - constrsw
       ports:
-         - "${OAUTH_EXTERNAL_API_PORT}:${OAUTH_INTERNAL_API_PORT}"
-         - "${OAUTH_EXTERNAL_DEBUG_PORT}:${OAUTH_INTERNAL_DEBUG_PORT}"
-      volumes:
-         - ./backend/oauth/src:/app/src
-         - ./backend/oauth/dist:/app/dist
+         - ${CLASSES_EXTERNAL_DEBUG_PORT}:${CLASSES_INTERNAL_DEBUG_PORT}
+         - ${CLASSES_EXTERNAL_API_PORT}:${CLASSES_INTERNAL_API_PORT}
       depends_on:
-         keycloak:
+         postgresql:
+            condition: service_healthy
+         mongodb:
             condition: service_healthy
       healthcheck:
-         test: ["CMD-SHELL", "curl -f http://localhost:${OAUTH_INTERNAL_API_PORT}/health"]
+         test:
+            ["CMD-SHELL", "curl -f ${CLASSES_INTERNAL_PROTOCOL}://${CLASSES_INTERNAL_HOST}:${CLASSES_INTERNAL_API_PORT}/health"]
+         start_period: 80s
          interval: 10s
-         timeout: 5s
-         retries: 5
+         timeout: 10s
+         retries: 10
       restart: always
-   # # Grupo 6
-   # # classes
-   # classes:
-   #   container_name: classes
-   #   build:
-   #     context: ./backend/classes/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/classes
-   #   environment:
-   #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-   #     - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-   #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-   #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-   #     - POSTGRESQL_DB=classes
-   #     - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-   #     - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-   #     - MONGODB_USERNAME=${MONGODB_USERNAME}
-   #     - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-   #     - MONGODB_DATABASE_NAME=classes
-   #   networks:
-   #     - constrsw
-   #   ports:
-   #     - ${CLASSES_EXTERNAL_API_PORT}:${CLASSES_INTERNAL_API_PORT}
-   #     - ${CLASSES_EXTERNAL_DEBUG_PORT}:${CLASSES_INTERNAL_DEBUG_PORT}
-   #   depends_on:
-   #     postgresql:
-   #       condition: service_healthy
-   #     mongodb:
-   #       condition: service_healthy
-   #   healthcheck:
-   #     test: [ "CMD-SHELL", "curl -f http://${CLASSES_INTERNAL_HOST}:${CLASSES_INTERNAL_PORT}/health" ]
-   #     start_period: 80s
-   #     interval: 10s
-   #     timeout: 10s
-   #     retries: 10
-   # # Grupo 3
-   # # courses
-   # courses:
-   #   container_name: courses
-   #   build:
-   #     context: ./backend/courses/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/courses
-   #   environment:
-   #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-   #     - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-   #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-   #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-   #     - POSTGRESQL_DB=courses
-   #     - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-   #     - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-   #     - MONGODB_USERNAME=${MONGODB_USERNAME}
-   #     - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-   #     - MONGODB_DATABASE_NAME=courses
-   #   networks:
-   #     - constrsw
-   #   ports:
-   #     - ${COURSES_EXTERNAL_API_PORT}:${COURSES_INTERNAL_API_PORT}
-   #     - ${COURSES_EXTERNAL_DEBUG_PORT}:${COURSES_INTERNAL_DEBUG_PORT}
-   #   depends_on:
-   #     postgresql:
-   #       condition: service_healthy
-   #     mongodb:
-   #       condition: service_healthy
-   #   healthcheck:
-   #     test: [ "CMD-SHELL", "curl -f http://${COURSES_INTERNAL_HOST}:${COURSES_INTERNAL_PORT}/health" ]
-   #     start_period: 80s
-   #     interval: 10s
-   #     timeout: 10s
-   #     retries: 10
-   # # Grupo 8
-   # # lessons
+   # Grupo 3
+   # courses
+   courses:
+      container_name: courses
+      build:
+         context: ./backend/courses/
+         dockerfile: Dockerfile
+      image: constrsw/courses
+      environment:
+         - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
+         - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+         - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+         - POSTGRESQL_DB=courses
+         - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
+         - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
+         - MONGODB_USERNAME=${MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+         - MONGODB_DB=courses
+         - COURSES_INTERNAL_PROTOCOL=${COURSES_INTERNAL_PROTOCOL}
+         - COURSES_INTERNAL_HOST=${COURSES_INTERNAL_HOST}
+         - COURSES_INTERNAL_API_PORT=${COURSES_INTERNAL_API_PORT}
+         - COURSES_INTERNAL_DEBUG_PORT=${COURSES_INTERNAL_DEBUG_PORT}
+      networks:
+         - constrsw
+      ports:
+         - ${COURSES_EXTERNAL_API_PORT}:${COURSES_INTERNAL_API_PORT}
+         - ${COURSES_EXTERNAL_DEBUG_PORT}:${COURSES_INTERNAL_DEBUG_PORT}
+      depends_on:
+         postgresql:
+            condition: service_healthy
+         mongodb:
+            condition: service_healthy
+      healthcheck:
+         test:
+            ["CMD-SHELL", "curl -f ${COURSES_INTERNAL_PROTOCOL}://${COURSES_INTERNAL_HOST}:${COURSES_INTERNAL_API_PORT}/health"]
+         start_period: 80s
+         interval: 10s
+         timeout: 10s
+         retries: 10
+      restart: always
+   # Grupo 8
+   # lessons
    lessons:
       container_name: lessons
       build:
@@ -214,7 +229,11 @@ services:
          - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
          - MONGODB_USERNAME=${MONGODB_USERNAME}
          - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-         - MONGODB_DATABASE_NAME=lessons
+         - MONGODB_DB=lessons
+         - LESSONS_INTERNAL_PROTOCOL=${LESSONS_INTERNAL_PROTOCOL}
+         - LESSONS_INTERNAL_HOST=${LESSONS_INTERNAL_HOST}
+         - LESSONS_INTERNAL_API_PORT=${LESSONS_INTERNAL_API_PORT}
+         - LESSONS_INTERNAL_DEBUG_PORT=${LESSONS_INTERNAL_DEBUG_PORT}
       networks:
          - constrsw
       ports:
@@ -226,81 +245,101 @@ services:
          mongodb:
             condition: service_healthy
       healthcheck:
-         test: ["CMD-SHELL", "curl -f http://${LESSONS_INTERNAL_HOST}:${LESSONS_INTERNAL_PORT}/health"]
+         test:
+            ["CMD-SHELL", "curl -f ${LESSONS_INTERNAL_PROTOCOL}://${LESSONS_INTERNAL_HOST}:${LESSONS_INTERNAL_API_PORT}/health"]
          start_period: 80s
          interval: 10s
          timeout: 10s
          retries: 10
-   # # Grupo 5
-   # # professors
-   # professors:
-   #   container_name: professors
-   #   build:
-   #     context: ./backend/professors/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/professors
-   #   environment:
-   #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-   #     - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-   #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-   #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-   #     - POSTGRESQL_DB=professors
-   #     - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-   #     - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-   #     - MONGODB_USERNAME=${MONGODB_USERNAME}
-   #     - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-   #     - MONGODB_DATABASE_NAME=professors
-   #   networks:
-   #     - constrsw
-   #   ports:
-   #     - ${PROFESSORS_EXTERNAL_API_PORT}:${PROFESSORS_INTERNAL_API_PORT}
-   #     - ${PROFESSORS_EXTERNAL_DEBUG_PORT}:${PROFESSORS_INTERNAL_DEBUG_PORT}
-   #   depends_on:
-   #     postgresql:
-   #       condition: service_healthy
-   #     mongodb:
-   #       condition: service_healthy
-   #   healthcheck:
-   #     test: [ "CMD-SHELL", "curl -f http://${PROFESSORS_INTERNAL_HOST}:${PROFESSORS_INTERNAL_PORT}/health" ]
-   #     start_period: 80s
-   #     interval: 10s
-   #     timeout: 10s
-   #     retries: 10
-   # # Grupo 1
-   # # reservations
-   # reservations:
-   #   container_name: reservations
-   #   build:
-   #     context: ./backend/reservations/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/reservations
-   #   environment:
-   #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-   #     - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-   #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-   #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-   #     - POSTGRESQL_DB=reservations
-   #     - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-   #     - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-   #     - MONGODB_USERNAME=${MONGODB_USERNAME}
-   #     - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-   #     - MONGODB_DATABASE_NAME=reservations
-   #   networks:
-   #     - constrsw
-   #   ports:
-   #     - ${RESERVATIONS_EXTERNAL_API_PORT}:${RESERVATIONS_INTERNAL_API_PORT}
-   #     - ${RESERVATIONS_EXTERNAL_DEBUG_PORT}:${RESERVATIONS_INTERNAL_DEBUG_PORT}
-   #   depends_on:
-   #     postgresql:
-   #       condition: service_healthy
-   #     mongodb:
-   #       condition: service_healthy
-   #   healthcheck:
-   #     test: [ "CMD-SHELL", "curl -f http://${RESERVATIONS_INTERNAL_HOST}:${RESERVATIONS_INTERNAL_API_PORT}/health" ]
-   #     start_period: 80s
-   #     interval: 10s
-   #     timeout: 10s
-   #     retries: 10
+      restart: always
+   # Grupo 5
+   # professors
+   professors:
+      container_name: professors
+      build:
+         context: ./backend/professors/
+         dockerfile: Dockerfile
+      image: constrsw/professors
+      environment:
+         - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
+         - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+         - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+         - POSTGRESQL_DB=professors
+         - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
+         - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
+         - MONGODB_USERNAME=${MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+         - MONGODB_DB=professors
+         - PROFESSORS_INTERNAL_PROTOCOL=${PROFESSORS_INTERNAL_PROTOCOL}
+         - PROFESSORS_INTERNAL_HOST=${PROFESSORS_INTERNAL_HOST}
+         - PROFESSORS_INTERNAL_API_PORT=${PROFESSORS_INTERNAL_API_PORT}
+         - PROFESSORS_INTERNAL_DEBUG_PORT=${PROFESSORS_INTERNAL_DEBUG_PORT}
+      networks:
+         - constrsw
+      ports:
+         - ${PROFESSORS_EXTERNAL_API_PORT}:${PROFESSORS_INTERNAL_API_PORT}
+         - ${PROFESSORS_EXTERNAL_DEBUG_PORT}:${PROFESSORS_INTERNAL_DEBUG_PORT}
+      depends_on:
+         postgresql:
+            condition: service_healthy
+         mongodb:
+            condition: service_healthy
+      healthcheck:
+         test:
+            [
+               "CMD-SHELL",
+               "curl -f ${PROFESSORS_INTERNAL_PROTOCOL}://${PROFESSORS_INTERNAL_HOST}:${PROFESSORS_INTERNAL_API_PORT}/health",
+            ]
+         start_period: 80s
+         interval: 10s
+         timeout: 10s
+         retries: 10
+      restart: always
+   # Grupo 1
+   # reservations
+   reservations:
+      container_name: reservations
+      build:
+         context: ./backend/reservations/
+         dockerfile: Dockerfile
+      image: constrsw/reservations
+      environment:
+         - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
+         - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+         - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+         - POSTGRESQL_DB=reservations
+         - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
+         - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
+         - MONGODB_USERNAME=${MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+         - MONGODB_DB=reservations
+         - RESERVATIONS_INTERNAL_PROTOCOL=${RESERVATIONS_INTERNAL_PROTOCOL}
+         - RESERVATIONS_INTERNAL_HOST=${RESERVATIONS_INTERNAL_HOST}
+         - RESERVATIONS_INTERNAL_API_PORT=${RESERVATIONS_INTERNAL_API_PORT}
+         - RESERVATIONS_INTERNAL_DEBUG_PORT=${RESERVATIONS_INTERNAL_DEBUG_PORT}
+      networks:
+         - constrsw
+      ports:
+         - ${RESERVATIONS_EXTERNAL_API_PORT}:${RESERVATIONS_INTERNAL_API_PORT}
+         - ${RESERVATIONS_EXTERNAL_DEBUG_PORT}:${RESERVATIONS_INTERNAL_DEBUG_PORT}
+      depends_on:
+         postgresql:
+            condition: service_healthy
+         mongodb:
+            condition: service_healthy
+      healthcheck:
+         test:
+            [
+               "CMD-SHELL",
+               "curl -f ${RESERVATIONS_INTERNAL_PROTOCOL}://${RESERVATIONS_INTERNAL_HOST}:${RESERVATIONS_INTERNAL_API_PORT}/health",
+            ]
+         start_period: 80s
+         interval: 10s
+         timeout: 10s
+         retries: 10
+      restart: always
    # Grupo 2
    # resources
    resources:
@@ -319,7 +358,11 @@ services:
          - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
          - MONGODB_USERNAME=${MONGODB_USERNAME}
          - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-         - MONGODB_DATABASE_NAME=resources
+         - MONGODB_DB=resources
+         - RESOURCES_INTERNAL_PROTOCOL=${RESOURCES_INTERNAL_PROTOCOL}
+         - RESOURCES_INTERNAL_HOST=${RESOURCES_INTERNAL_HOST}
+         - RESOURCES_INTERNAL_API_PORT=${RESOURCES_INTERNAL_API_PORT}
+         - RESOURCES_INTERNAL_DEBUG_PORT=${RESOURCES_INTERNAL_DEBUG_PORT}
       networks:
          - constrsw
       ports:
@@ -340,76 +383,91 @@ services:
          interval: 10s
          timeout: 10s
          retries: 10
-   # # Grupo 4
-   # # rooms
-   # rooms:
-   #   container_name: rooms
-   #   build:
-   #     context: ./backend/rooms/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/rooms
-   #   environment:
-   #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-   #     - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-   #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-   #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-   #     - POSTGRESQL_DB=rooms
-   #     - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-   #     - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-   #     - MONGODB_USERNAME=${MONGODB_USERNAME}
-   #     - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-   #     - MONGODB_DATABASE_NAME=rooms
-   #   networks:
-   #     - constrsw
-   #   ports:
-   #     - ${ROOMS_EXTERNAL_API_PORT}:${ROOMS_INTERNAL_API_PORT}
-   #     - ${ROOMS_EXTERNAL_DEBUG_PORT}:${ROOMS_INTERNAL_DEBUG_PORT}
-   #   depends_on:
-   #     postgresql:
-   #       condition: service_healthy
-   #     mongodb:
-   #       condition: service_healthy
-   #   healthcheck:
-   #     test: [ "CMD-SHELL", "curl -f http://${ROOMS_INTERNAL_HOST}:${ROOMS_INTERNAL_API_PORT}/health" ]
-   #     start_period: 80s
-   #     interval: 10s
-   #     timeout: 10s
-   #     retries: 10
-   # # Grupo 7
-   # # students
-   # students:
-   #   container_name: students
-   #   build:
-   #     context: ./backend/students/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/students
-   #   environment:
-   #     - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-   #     - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-   #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-   #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-   #     - POSTGRESQL_DB=students
-   #     - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-   #     - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-   #     - MONGODB_USERNAME=${MONGODB_USERNAME}
-   #     - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-   #     - MONGODB_DATABASE_NAME=students
-   #   networks:
-   #     - constrsw
-   #   ports:
-   #     - ${STUDENTS_EXTERNAL_API_PORT}:${STUDENTS_INTERNAL_API_PORT}
-   #     - ${STUDENTS_EXTERNAL_DEBUG_PORT}:${STUDENTS_INTERNAL_DEBUG_PORT}
-   #   depends_on:
-   #     postgresql:
-   #       condition: service_healthy
-   #     mongodb:
-   #       condition: service_healthy
-   #   healthcheck:
-   #     test: [ "CMD-SHELL", "curl -f http://${STUDENTS_INTERNAL_HOST}:${STUDENTS_INTERNAL_API_PORT}/health" ]
-   #     start_period: 80s
-   #     interval: 10s
-   #     timeout: 10s
-   #     retries: 10
+      restart: always
+   # Grupo 4
+   # rooms
+   rooms:
+      container_name: rooms
+      build:
+         context: ./backend/rooms/
+         dockerfile: Dockerfile
+      image: constrsw/rooms
+      environment:
+         - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
+         - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+         - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+         - POSTGRESQL_DB=rooms
+         - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
+         - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
+         - MONGODB_USERNAME=${MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+         - MONGODB_DB=rooms
+         - ROOMS_INTERNAL_PROTOCOL=${ROOMS_INTERNAL_PROTOCOL}
+         - ROOMS_INTERNAL_HOST=${ROOMS_INTERNAL_HOST}
+         - ROOMS_INTERNAL_API_PORT=${ROOMS_INTERNAL_API_PORT}
+         - ROOMS_INTERNAL_DEBUG_PORT=${ROOMS_INTERNAL_DEBUG_PORT}
+      networks:
+         - constrsw
+      ports:
+         - ${ROOMS_EXTERNAL_API_PORT}:${ROOMS_INTERNAL_API_PORT}
+         - ${ROOMS_EXTERNAL_DEBUG_PORT}:${ROOMS_INTERNAL_DEBUG_PORT}
+      depends_on:
+         postgresql:
+            condition: service_healthy
+         mongodb:
+            condition: service_healthy
+      healthcheck:
+         test: ["CMD-SHELL", "curl -f ${ROOMS_INTERNAL_PROTOCOL}://${ROOMS_INTERNAL_HOST}:${ROOMS_INTERNAL_API_PORT}/health"]
+         start_period: 80s
+         interval: 10s
+         timeout: 10s
+         retries: 10
+      restart: always
+   # Grupo 7
+   # students
+   students:
+      container_name: students
+      build:
+         context: ./backend/students/
+         dockerfile: Dockerfile
+      image: constrsw/students
+      environment:
+         - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
+         - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+         - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+         - POSTGRESQL_DB=students
+         - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
+         - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
+         - MONGODB_USERNAME=${MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+         - MONGODB_DB=students
+         - STUDENTS_INTERNAL_PROTOCOL=${STUDENTS_INTERNAL_PROTOCOL}
+         - STUDENTS_INTERNAL_HOST=${STUDENTS_INTERNAL_HOST}
+         - STUDENTS_INTERNAL_API_PORT=${STUDENTS_INTERNAL_API_PORT}
+         - STUDENTS_INTERNAL_DEBUG_PORT=${STUDENTS_INTERNAL_DEBUG_PORT}
+      networks:
+         - constrsw
+      ports:
+         - ${STUDENTS_EXTERNAL_API_PORT}:${STUDENTS_INTERNAL_API_PORT}
+         - ${STUDENTS_EXTERNAL_DEBUG_PORT}:${STUDENTS_INTERNAL_DEBUG_PORT}
+      depends_on:
+         postgresql:
+            condition: service_healthy
+         mongodb:
+            condition: service_healthy
+      healthcheck:
+         test:
+            [
+               "CMD-SHELL",
+               "curl -f ${STUDENTS_INTERNAL_PROTOCOL}://${STUDENTS_INTERNAL_HOST}:${STUDENTS_INTERNAL_API_PORT}/health",
+            ]
+         start_period: 80s
+         interval: 10s
+         timeout: 10s
+         retries: 10
+      restart: always
    # BFF
    bff:
       container_name: ${BFF_NAME}
@@ -421,30 +479,30 @@ services:
          - OAUTH_INTERNAL_PROTOCOL=${OAUTH_INTERNAL_PROTOCOL}
          - OAUTH_INTERNAL_API_PORT=${OAUTH_INTERNAL_API_PORT}
          - OAUTH_INTERNAL_HOST=${OAUTH_INTERNAL_HOST}
-         #    - CLASSES_INTERNAL_PROTOCOL=${CLASSES_INTERNAL_PROTOCOL}
-         #     - CLASSES_INTERNAL_HOST=${CLASSES_INTERNAL_HOST}
-         #     - CLASSES_INTERNAL_PORT=${CLASSES_INTERNAL_PORT}
-         #     - COURSES_INTERNAL_HOST=${COURSES_INTERNAL_HOST}
-         #     - COURSES_INTERNAL_PORT=${COURSES_INTERNAL_PORT}
-         #     - COURSES_INTERNAL_PROTOCOL=${COURSES_INTERNAL_PROTOCOL}
-         #     - LESSONS_INTERNAL_PROTOCOL=${LESSONS_INTERNAL_PROTOCOL}
-         #     - LESSONS_INTERNAL_HOST=${LESSONS_INTERNAL_HOST}
-         #     - LESSONS_INTERNAL_PORT=${LESSONS_INTERNAL_PORT}
-         #     - PROFESSORS_INTERNAL_PROTOCOL=${PROFESSORS_INTERNAL_PROTOCOL}
-         #     - PROFESSORS_INTERNAL_HOST=${PROFESSORS_INTERNAL_HOST}
-         #     - PROFESSORS_INTERNAL_PORT=${PROFESSORS_INTERNAL_PORT}
-         #     - RESERVATIONS_INTERNAL_PROTOCOL=${RESERVATIONS_INTERNAL_PROTOCOL}
-         #     - RESERVATIONS_INTERNAL_HOST=${RESERVATIONS_INTERNAL_HOST}
-         #     - RESERVATIONS_INTERNAL_PORT=${RESERVATIONS_INTERNAL_PORT}
+         - CLASSES_INTERNAL_PROTOCOL=${CLASSES_INTERNAL_PROTOCOL}
+         - CLASSES_INTERNAL_HOST=${CLASSES_INTERNAL_HOST}
+         - CLASSES_INTERNAL_API_PORT=${CLASSES_INTERNAL_API_PORT}
+         - COURSES_INTERNAL_HOST=${COURSES_INTERNAL_HOST}
+         - COURSES_INTERNAL_API_PORT=${COURSES_INTERNAL_API_PORT}
+         - COURSES_INTERNAL_PROTOCOL=${COURSES_INTERNAL_PROTOCOL}
+         - LESSONS_INTERNAL_PROTOCOL=${LESSONS_INTERNAL_PROTOCOL}
+         - LESSONS_INTERNAL_HOST=${LESSONS_INTERNAL_HOST}
+         - LESSONS_INTERNAL_API_PORT=${LESSONS_INTERNAL_API_PORT}
+         - PROFESSORS_INTERNAL_PROTOCOL=${PROFESSORS_INTERNAL_PROTOCOL}
+         - PROFESSORS_INTERNAL_HOST=${PROFESSORS_INTERNAL_HOST}
+         - PROFESSORS_INTERNAL_API_PORT=${PROFESSORS_INTERNAL_API_PORT}
+         - RESERVATIONS_INTERNAL_PROTOCOL=${RESERVATIONS_INTERNAL_PROTOCOL}
+         - RESERVATIONS_INTERNAL_HOST=${RESERVATIONS_INTERNAL_HOST}
+         - RESERVATIONS_INTERNAL_API_PORT=${RESERVATIONS_INTERNAL_API_PORT}
          - RESOURCES_INTERNAL_PROTOCOL=${RESOURCES_INTERNAL_PROTOCOL}
          - RESOURCES_INTERNAL_HOST=${RESOURCES_INTERNAL_HOST}
          - RESOURCES_INTERNAL_API_PORT=${RESOURCES_INTERNAL_API_PORT}
-      #     - ROOMS_INTERNAL_PROTOCOL=${ROOMS_INTERNAL_PROTOCOL}
-      #     - ROOMS_INTERNAL_HOST=${ROOMS_INTERNAL_HOST}
-      #     - ROOMS_INTERNAL_PORT=${ROOMS_INTERNAL_PORT}
-      #     - STUDENTS_INTERNAL_PROTOCOL=${STUDENTS_INTERNAL_PROTOCOL}
-      #     - STUDENTS_INTERNAL_HOST=${STUDENTS_INTERNAL_HOST}
-      #     - STUDENTS_INTERNAL_PORT=${STUDENTS_INTERNAL_PORT}
+         - ROOMS_INTERNAL_PROTOCOL=${ROOMS_INTERNAL_PROTOCOL}
+         - ROOMS_INTERNAL_HOST=${ROOMS_INTERNAL_HOST}
+         - ROOMS_INTERNAL_API_PORT=${ROOMS_INTERNAL_API_PORT}
+         - STUDENTS_INTERNAL_PROTOCOL=${STUDENTS_INTERNAL_PROTOCOL}
+         - STUDENTS_INTERNAL_HOST=${STUDENTS_INTERNAL_HOST}
+         - STUDENTS_INTERNAL_API_PORT=${STUDENTS_INTERNAL_API_PORT}
       networks:
          - constrsw
       ports:
@@ -453,28 +511,29 @@ services:
       depends_on:
          oauth:
             condition: service_healthy
-         # classes:
-         #     #   condition: service_healthy
-         #     # courses:
-         #     #   condition: service_healthy
-         #     # lessons:
-         #     #   condition: service_healthy
-         #     # professors:
-         #     #   condition: service_healthy
-         #     # reservations:
-         #     #   condition: service_healthy
+         classes:
+            condition: service_healthy
+         courses:
+            condition: service_healthy
+         lessons:
+            condition: service_healthy
+         professors:
+            condition: service_healthy
+         reservations:
+            condition: service_healthy
          resources:
             condition: service_healthy
-      #     # rooms:
-      #     #   condition: service_healthy
-      #     # students:
-      #     #   condition: service_healthy
+         rooms:
+            condition: service_healthy
+         students:
+            condition: service_healthy
       healthcheck:
-         test: ["CMD-SHELL", "curl -f http://localhost:${BFF_INTERNAL_API_PORT}/health"]
+         test: ["CMD-SHELL", "curl -f ${BFF_INTERNAL_PROTOCOL}://${BFF_INTERNAL_HOST}:${BFF_INTERNAL_API_PORT}/health"]
          start_period: 90s
          interval: 10s
          timeout: 10s
          retries: 10
+      restart: always
    # # Frontend
    # frontend:
    #   container_name: frontend
@@ -490,524 +549,3 @@ services:
    #   depends_on:
    #     bff:
    #       condition: service_healthy
-=======
-  # Keycloak
-  keycloak:
-    container_name: keycloak
-    build:
-      context: backend/utils/keycloak
-      dockerfile: Dockerfile
-    image: constrsw/keycloak
-    command: start-dev --import-realm
-    environment:
-      - KC_HEALTH_ENABLED=${KC_HEALTH_ENABLED}
-      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-    volumes:
-      # No terminal, criar o volume externo: docker volume create constrsw-keycloak-data
-      - constrsw-keycloak-data:/opt/jboss/keycloak/standalone/data
-      - ./backend/utils/keycloak:/opt/keycloak/data/import
-    networks:
-      - constrsw
-    ports:
-      - ${KEYCLOAK_EXTERNAL_CONSOLE_PORT}:${KEYCLOAK_INTERNAL_CONSOLE_PORT}
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${KEYCLOAK_INTERNAL_HOST}:${KEYCLOAK_INTERNAL_API_PORT}/health" ]
-      start_period: 300s
-      interval: 10s
-      timeout: 10s
-      retries: 50
-    restart: always
-    # OAuth
-  oauth:
-    container_name: oauth
-    build:
-      context: ./backend/oauth
-      dockerfile: Dockerfile
-      target: development
-    image: constrsw/oauth
-    environment:
-      - KEYCLOAK_BASE_URL=${KEYCLOAK_INTERNAL_PROTOCOL}://${KEYCLOAK_INTERNAL_HOST}:${KEYCLOAK_INTERNAL_API_PORT}
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
-      - KEYCLOAK_GRANT_TYPE=${KEYCLOAK_GRANT_TYPE}
-      - OAUTH_INTERNAL_PROTOCOL=${OAUTH_INTERNAL_PROTOCOL}
-      - OAUTH_INTERNAL_API_PORT=3000
-      - OAUTH_EXTERNAL_API_PORT=8088
-      - NODE_ENV=development
-    networks:
-      - constrsw
-    ports:
-      - "${OAUTH_EXTERNAL_API_PORT}:${OAUTH_INTERNAL_API_PORT}"
-      - "${OAUTH_EXTERNAL_DEBUG_PORT}:${OAUTH_INTERNAL_DEBUG_PORT}"
-    volumes:
-      - ./backend/oauth/src:/app/src
-      - ./backend/oauth/dist:/app/dist
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${OAUTH_INTERNAL_API_PORT}/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: always
-  # PostgreSQL
-  postgresql:
-    container_name: postgresql
-    build:
-      context: ./backend/utils/postgresql/
-      dockerfile: Dockerfile
-      args:
-        - POSTGRESQL_HOST_AUTH_METHOD=${POSTGRESQL_HOST_AUTH_METHOD}
-        - POSTGRESQL_DATA=${POSTGRESQL_DATA}
-    image: constrsw/postgresql
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=5432
-      - POSTGRES_USER=${POSTGRESQL_USERNAME}
-      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=${POSTGRESQL_DB}
-    volumes:
-      # No terminal, criar o volume externo: docker volume create constrsw-postgresql-data
-      - constrsw-postgresql-data:${POSTGRESQL_DATA}
-    networks:
-      - constrsw
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      start_period: 30s
-      interval: 20s
-      timeout: 10s
-      retries: 10
-    restart: always
-    # psql postgresql://${POSTGRESQL_USERNAME}:${POSTGRESQL_USERNAME}@${POSTGRESQL_INTERNAL_HOST}:${POSTGRESQL_INTERNAL_PORT}
-    # psql -h ${POSTGRESQL_INTERNAL_HOST} -p ${POSTGRESQL_INTERNAL_PORT} -U ${POSTGRESQL_USERNAME} -P ${POSTGRESQL_PASSWORD} -d database
-  # MongoDB
-  mongodb:
-    container_name: mongodb
-    build:
-      context: ./backend/utils/mongodb/
-      dockerfile: Dockerfile
-    image: constrsw/mongodb
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
-      - CLASSES_USERNAME=${CLASSES_MONGODB_USERNAME}
-      - CLASSES_PASSWORD=${CLASSES_MONGODB_PASSWORD}
-      - CLASSES_DATABASE=${CLASSES_MONGODB_DATABASE}
-    volumes:
-      # No terminal, criar o volume externo: docker volume create constrsw-mongodb-data
-      - constrsw-mongodb-data:/data/mongodb
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
-    networks:
-      - constrsw
-    healthcheck:
-      test: [ "CMD-SHELL", "mongosh --quiet mongodb/TEST --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'" ]
-      start_period: 30s
-      interval: 20s
-      timeout: 10s
-      retries: 20
-    restart: always
-  # Grupo 6 
-  # classes
-  classes:
-    container_name: classes
-    build:
-      context: ./backend/classes/
-      dockerfile: Dockerfile
-    image: constrsw/classes
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=classes
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${CLASSES_MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${CLASSES_MONGODB_PASSWORD}
-      - MONGODB_DB=classes
-      - CLASSES_INTERNAL_PROTOCOL=${CLASSES_INTERNAL_PROTOCOL}
-      - CLASSES_INTERNAL_HOST=${CLASSES_INTERNAL_HOST}
-      - CLASSES_INTERNAL_API_PORT=${CLASSES_INTERNAL_API_PORT}
-      - CLASSES_INTERNAL_DEBUG_PORT=${CLASSES_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${CLASSES_EXTERNAL_DEBUG_PORT}:${CLASSES_INTERNAL_DEBUG_PORT}
-      - ${CLASSES_EXTERNAL_API_PORT}:${CLASSES_INTERNAL_API_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${CLASSES_INTERNAL_PROTOCOL}://${CLASSES_INTERNAL_HOST}:${CLASSES_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 3
-  # courses
-  courses:
-    container_name: courses
-    build:
-      context: ./backend/courses/
-      dockerfile: Dockerfile
-    image: constrsw/courses
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=courses
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=courses
-      - COURSES_INTERNAL_PROTOCOL=${COURSES_INTERNAL_PROTOCOL}
-      - COURSES_INTERNAL_HOST=${COURSES_INTERNAL_HOST}
-      - COURSES_INTERNAL_API_PORT=${COURSES_INTERNAL_API_PORT}
-      - COURSES_INTERNAL_DEBUG_PORT=${COURSES_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${COURSES_EXTERNAL_API_PORT}:${COURSES_INTERNAL_API_PORT}
-      - ${COURSES_EXTERNAL_DEBUG_PORT}:${COURSES_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${COURSES_INTERNAL_PROTOCOL}://${COURSES_INTERNAL_HOST}:${COURSES_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 8
-  # lessons
-  lessons:
-    container_name: lessons
-    build:
-      context: ./backend/lessons/
-      dockerfile: Dockerfile
-    image: constrsw/lessons
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=lessons
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=lessons
-      - LESSONS_INTERNAL_PROTOCOL=${LESSONS_INTERNAL_PROTOCOL}
-      - LESSONS_INTERNAL_HOST=${LESSONS_INTERNAL_HOST}
-      - LESSONS_INTERNAL_API_PORT=${LESSONS_INTERNAL_API_PORT}
-      - LESSONS_INTERNAL_DEBUG_PORT=${LESSONS_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${LESSONS_EXTERNAL_API_PORT}:${LESSONS_INTERNAL_API_PORT}
-      - ${LESSONS_EXTERNAL_DEBUG_PORT}:${LESSONS_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${LESSONS_INTERNAL_PROTOCOL}://${LESSONS_INTERNAL_HOST}:${LESSONS_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 5
-  # professors
-  professors:
-    container_name: professors
-    build:
-      context: ./backend/professors/
-      dockerfile: Dockerfile
-    image: constrsw/professors
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=professors
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=professors
-      - PROFESSORS_INTERNAL_PROTOCOL=${PROFESSORS_INTERNAL_PROTOCOL}
-      - PROFESSORS_INTERNAL_HOST=${PROFESSORS_INTERNAL_HOST}
-      - PROFESSORS_INTERNAL_API_PORT=${PROFESSORS_INTERNAL_API_PORT}
-      - PROFESSORS_INTERNAL_DEBUG_PORT=${PROFESSORS_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${PROFESSORS_EXTERNAL_API_PORT}:${PROFESSORS_INTERNAL_API_PORT}
-      - ${PROFESSORS_EXTERNAL_DEBUG_PORT}:${PROFESSORS_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${PROFESSORS_INTERNAL_PROTOCOL}://${PROFESSORS_INTERNAL_HOST}:${PROFESSORS_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 1
-  # reservations
-  reservations:
-    container_name: reservations
-    build:
-      context: ./backend/reservations/
-      dockerfile: Dockerfile
-    image: constrsw/reservations
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=reservations
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=reservations
-      - RESERVATIONS_INTERNAL_PROTOCOL=${RESERVATIONS_INTERNAL_PROTOCOL}
-      - RESERVATIONS_INTERNAL_HOST=${RESERVATIONS_INTERNAL_HOST}
-      - RESERVATIONS_INTERNAL_API_PORT=${RESERVATIONS_INTERNAL_API_PORT}
-      - RESERVATIONS_INTERNAL_DEBUG_PORT=${RESERVATIONS_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${RESERVATIONS_EXTERNAL_API_PORT}:${RESERVATIONS_INTERNAL_API_PORT}
-      - ${RESERVATIONS_EXTERNAL_DEBUG_PORT}:${RESERVATIONS_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${RESERVATIONS_INTERNAL_PROTOCOL}://${RESERVATIONS_INTERNAL_HOST}:${RESERVATIONS_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 2
-  # resources
-  resources:
-    container_name: resources
-    build:
-      context: ./backend/resources/
-      dockerfile: Dockerfile
-    image: constrsw/resources
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=resources
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=resources
-      - RESOURCES_INTERNAL_PROTOCOL=${RESOURCES_INTERNAL_PROTOCOL}
-      - RESOURCES_INTERNAL_HOST=${RESOURCES_INTERNAL_HOST}
-      - RESOURCES_INTERNAL_API_PORT=${RESOURCES_INTERNAL_API_PORT}
-      - RESOURCES_INTERNAL_DEBUG_PORT=${RESOURCES_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${RESOURCES_EXTERNAL_API_PORT}:${RESOURCES_INTERNAL_API_PORT}
-      - ${RESOURCES_EXTERNAL_DEBUG_PORT}:${RESOURCES_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${RESOURCES_INTERNAL_PROTOCOL}://${RESOURCES_INTERNAL_HOST}:${RESOURCES_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 4
-  # rooms
-  rooms:
-    container_name: rooms
-    build:
-      context: ./backend/rooms/
-      dockerfile: Dockerfile
-    image: constrsw/rooms
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=rooms
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=rooms
-      - ROOMS_INTERNAL_PROTOCOL=${ROOMS_INTERNAL_PROTOCOL}
-      - ROOMS_INTERNAL_HOST=${ROOMS_INTERNAL_HOST}
-      - ROOMS_INTERNAL_API_PORT=${ROOMS_INTERNAL_API_PORT}
-      - ROOMS_INTERNAL_DEBUG_PORT=${ROOMS_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${ROOMS_EXTERNAL_API_PORT}:${ROOMS_INTERNAL_API_PORT}
-      - ${ROOMS_EXTERNAL_DEBUG_PORT}:${ROOMS_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${ROOMS_INTERNAL_PROTOCOL}://${ROOMS_INTERNAL_HOST}:${ROOMS_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # Grupo 7
-  # students
-  students:
-    container_name: students
-    build:
-      context: ./backend/students/
-      dockerfile: Dockerfile
-    image: constrsw/students
-    environment:
-      - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-      - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_DB=students
-      - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
-      - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DB=students
-      - STUDENTS_INTERNAL_PROTOCOL=${STUDENTS_INTERNAL_PROTOCOL}
-      - STUDENTS_INTERNAL_HOST=${STUDENTS_INTERNAL_HOST}
-      - STUDENTS_INTERNAL_API_PORT=${STUDENTS_INTERNAL_API_PORT}
-      - STUDENTS_INTERNAL_DEBUG_PORT=${STUDENTS_INTERNAL_DEBUG_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${STUDENTS_EXTERNAL_API_PORT}:${STUDENTS_INTERNAL_API_PORT}
-      - ${STUDENTS_EXTERNAL_DEBUG_PORT}:${STUDENTS_INTERNAL_DEBUG_PORT}
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${STUDENTS_INTERNAL_PROTOCOL}://${STUDENTS_INTERNAL_HOST}:${STUDENTS_INTERNAL_API_PORT}/health" ]
-      start_period: 80s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # BFF
-  bff:
-    container_name: ${BFF_NAME}
-    build:
-      context: ./backend/bff/
-      dockerfile: Dockerfile
-    image: constrsw/bff
-    environment:
-      - OAUTH_INTERNAL_PROTOCOL=${OAUTH_INTERNAL_PROTOCOL}
-      - OAUTH_INTERNAL_API_PORT=${OAUTH_INTERNAL_API_PORT}
-      - OAUTH_INTERNAL_HOST=${OAUTH_INTERNAL_HOST}
-      - CLASSES_INTERNAL_PROTOCOL=${CLASSES_INTERNAL_PROTOCOL}
-      - CLASSES_INTERNAL_HOST=${CLASSES_INTERNAL_HOST}
-      - CLASSES_INTERNAL_API_PORT=${CLASSES_INTERNAL_API_PORT}
-      - COURSES_INTERNAL_HOST=${COURSES_INTERNAL_HOST}
-      - COURSES_INTERNAL_API_PORT=${COURSES_INTERNAL_API_PORT}
-      - COURSES_INTERNAL_PROTOCOL=${COURSES_INTERNAL_PROTOCOL}
-      - LESSONS_INTERNAL_PROTOCOL=${LESSONS_INTERNAL_PROTOCOL}
-      - LESSONS_INTERNAL_HOST=${LESSONS_INTERNAL_HOST}
-      - LESSONS_INTERNAL_API_PORT=${LESSONS_INTERNAL_API_PORT}
-      - PROFESSORS_INTERNAL_PROTOCOL=${PROFESSORS_INTERNAL_PROTOCOL}
-      - PROFESSORS_INTERNAL_HOST=${PROFESSORS_INTERNAL_HOST}
-      - PROFESSORS_INTERNAL_API_PORT=${PROFESSORS_INTERNAL_API_PORT}
-      - RESERVATIONS_INTERNAL_PROTOCOL=${RESERVATIONS_INTERNAL_PROTOCOL}
-      - RESERVATIONS_INTERNAL_HOST=${RESERVATIONS_INTERNAL_HOST}
-      - RESERVATIONS_INTERNAL_API_PORT=${RESERVATIONS_INTERNAL_API_PORT}
-      - RESOURCES_INTERNAL_PROTOCOL=${RESOURCES_INTERNAL_PROTOCOL}
-      - RESOURCES_INTERNAL_HOST=${RESOURCES_INTERNAL_HOST}
-      - RESOURCES_INTERNAL_API_PORT=${RESOURCES_INTERNAL_API_PORT}
-      - ROOMS_INTERNAL_PROTOCOL=${ROOMS_INTERNAL_PROTOCOL}
-      - ROOMS_INTERNAL_HOST=${ROOMS_INTERNAL_HOST}
-      - ROOMS_INTERNAL_API_PORT=${ROOMS_INTERNAL_API_PORT}
-      - STUDENTS_INTERNAL_PROTOCOL=${STUDENTS_INTERNAL_PROTOCOL}
-      - STUDENTS_INTERNAL_HOST=${STUDENTS_INTERNAL_HOST}
-      - STUDENTS_INTERNAL_API_PORT=${STUDENTS_INTERNAL_API_PORT}
-    networks:
-      - constrsw
-    ports:
-      - ${BFF_EXTERNAL_API_PORT}:${BFF_INTERNAL_API_PORT}
-      - ${BFF_EXTERNAL_DEBUG_PORT}:${BFF_INTERNAL_DEBUG_PORT}
-    depends_on:
-      oauth:
-        condition: service_healthy
-      classes:
-        condition: service_healthy
-      courses:
-        condition: service_healthy
-      lessons:
-        condition: service_healthy
-      professors:
-        condition: service_healthy
-      reservations:
-        condition: service_healthy
-      resources:
-        condition: service_healthy
-      rooms:
-        condition: service_healthy
-      students:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f ${BFF_INTERNAL_PROTOCOL}://${BFF_INTERNAL_HOST}:${BFF_INTERNAL_API_PORT}/health" ]
-      start_period: 90s
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: always
-  # # Frontend
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: ./frontend/
-  #     dockerfile: Dockerfile
-  #   image: constrsw/frontend
-  #   ports:
-  #     - ${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}
-  #     - ${FRONTEND_EXTERNAL_DEBUG_PORT}:${FRONTEND_INTERNAL_DEBUG_PORT}
-  #   networks:
-  #     - constrsw
-  #   depends_on:
-  #     bff:
-  #       condition: service_healthy
->>>>>>> 476b85bc62cb38b05257b2c611bd78bbd1917338
