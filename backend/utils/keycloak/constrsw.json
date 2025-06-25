@@ -1029,7 +1029,7 @@
             "description": "",
             "type": "resource",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"professors\",\"resources\",\"rooms\",\"students\"]",
               "applyPolicies": "[\"administrator-policy\"]"
@@ -1041,10 +1041,10 @@
             "description": "",
             "type": "resource",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"classes\",\"courses\"]",
-              "applyPolicies": "[\"coordinator-policy\"]"
+              "applyPolicies": "[\"coordinator-policy\",\"administrator-policy\"]"
             }
           },
           {
@@ -1053,10 +1053,10 @@
             "description": "",
             "type": "resource",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"lessons\",\"reservations\"]",
-              "applyPolicies": "[\"professor-policy\"]"
+              "applyPolicies": "[\"coordinator-policy\",\"professor-policy\",\"administrator-policy\"]"
             }
           }
         ],
@@ -1207,8 +1207,9 @@
       "description": "OpenID Connect scope for add user roles to the access token",
       "protocol": "openid-connect",
       "attributes": {
-        "include.in.token.scope": "false",
+        "include.in.token.scope": "true",
         "display.on.consent.screen": "true",
+        "gui.order": "",
         "consent.screen.text": "${rolesScopeConsentText}"
       },
       "protocolMappers": [

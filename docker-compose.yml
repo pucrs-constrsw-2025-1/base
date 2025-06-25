@@ -56,6 +56,9 @@ services:
          - OAUTH_INTERNAL_API_PORT=3000
          - OAUTH_EXTERNAL_API_PORT=8088
          - NODE_ENV=development
+         - FRONTEND_EXTERNAL_PROTOCOL=${FRONTEND_EXTERNAL_PROTOCOL}
+         - FRONTEND_EXTERNAL_HOST=${FRONTEND_EXTERNAL_HOST}
+         - FRONTEND_EXTERNAL_PORT=${FRONTEND_EXTERNAL_PORT}
       networks:
          - constrsw
       ports:
@@ -68,7 +71,7 @@ services:
          keycloak:
             condition: service_healthy
       healthcheck:
-         test: ["CMD-SHELL", "curl -f http://localhost:${OAUTH_INTERNAL_API_PORT}/health"]
+         test: ["CMD-SHELL", "curl -f http://localhost:${OAUTH_INTERNAL_API_PORT}/actuator/health"]
          interval: 10s
          timeout: 5s
          retries: 5
@@ -85,7 +88,7 @@ services:
       image: constrsw/postgresql
       environment:
          - POSTGRESQL_INTERNAL_HOST=${POSTGRESQL_INTERNAL_HOST}
-         - POSTGRESQL_INTERNAL_PORT=5432
+         - POSTGRESQL_INTERNAL_PORT=${POSTGRESQL_INTERNAL_PORT}
          - POSTGRES_USER=${POSTGRESQL_USERNAME}
          - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
          - POSTGRESQL_DB=${POSTGRESQL_DB}
@@ -94,6 +97,8 @@ services:
          - constrsw-postgresql-data:${POSTGRESQL_DATA}
       networks:
          - constrsw
+      ports:
+         - ${POSTGRESQL_EXTERNAL_PORT}:${POSTGRESQL_INTERNAL_PORT}
       healthcheck:
          test: ["CMD-SHELL", "pg_isready -U postgres"]
          start_period: 30s
@@ -113,15 +118,14 @@ services:
       environment:
          - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
          - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
-         - CLASSES_USERNAME=${CLASSES_MONGODB_USERNAME}
-         - CLASSES_PASSWORD=${CLASSES_MONGODB_PASSWORD}
-         - CLASSES_DATABASE=${CLASSES_MONGODB_DATABASE}
       volumes:
          # No terminal, criar o volume externo: docker volume create constrsw-mongodb-data
          - constrsw-mongodb-data:/data/mongodb
          - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
       networks:
          - constrsw
+      ports:
+         - ${MONGODB_EXTERNAL_PORT}:${MONGODB_INTERNAL_PORT}
       healthcheck:
          test: ["CMD-SHELL", "mongosh --quiet mongodb/TEST --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'"]
          start_period: 30s
@@ -145,8 +149,8 @@ services:
          - POSTGRESQL_DB=classes
          - MONGODB_INTERNAL_HOST=${MONGODB_INTERNAL_HOST}
          - MONGODB_INTERNAL_PORT=${MONGODB_INTERNAL_PORT}
-         - MONGODB_USERNAME=${CLASSES_MONGODB_USERNAME}
-         - MONGODB_PASSWORD=${CLASSES_MONGODB_PASSWORD}
+         - MONGODB_USERNAME=${MONGODB_USERNAME}
+         - MONGODB_PASSWORD=${MONGODB_PASSWORD}
          - MONGODB_DB=classes
          - CLASSES_INTERNAL_PROTOCOL=${CLASSES_INTERNAL_PROTOCOL}
          - CLASSES_INTERNAL_HOST=${CLASSES_INTERNAL_HOST}
@@ -164,7 +168,10 @@ services:
             condition: service_healthy
       healthcheck:
          test:
-            ["CMD-SHELL", "curl -f ${CLASSES_INTERNAL_PROTOCOL}://${CLASSES_INTERNAL_HOST}:${CLASSES_INTERNAL_API_PORT}/health"]
+            [
+               "CMD-SHELL",
+               "curl -f ${CLASSES_INTERNAL_PROTOCOL}://${CLASSES_INTERNAL_HOST}:${CLASSES_INTERNAL_API_PORT}/actuator/health",
+            ]
          start_period: 80s
          interval: 10s
          timeout: 10s
@@ -193,6 +200,9 @@ services:
          - COURSES_INTERNAL_HOST=${COURSES_INTERNAL_HOST}
          - COURSES_INTERNAL_API_PORT=${COURSES_INTERNAL_API_PORT}
          - COURSES_INTERNAL_DEBUG_PORT=${COURSES_INTERNAL_DEBUG_PORT}
+         - FRONTEND_EXTERNAL_PROTOCOL=${FRONTEND_EXTERNAL_PROTOCOL}
+         - FRONTEND_EXTERNAL_HOST=${FRONTEND_EXTERNAL_HOST}
+         - FRONTEND_EXTERNAL_PORT=${FRONTEND_EXTERNAL_PORT}
       networks:
          - constrsw
       ports:
@@ -205,7 +215,10 @@ services:
             condition: service_healthy
       healthcheck:
          test:
-            ["CMD-SHELL", "curl -f ${COURSES_INTERNAL_PROTOCOL}://${COURSES_INTERNAL_HOST}:${COURSES_INTERNAL_API_PORT}/health"]
+            [
+               "CMD-SHELL",
+               "curl -f ${COURSES_INTERNAL_PROTOCOL}://${COURSES_INTERNAL_HOST}:${COURSES_INTERNAL_API_PORT}/actuator/health",
+            ]
          start_period: 80s
          interval: 10s
          timeout: 10s
@@ -246,7 +259,10 @@ services:
             condition: service_healthy
       healthcheck:
          test:
-            ["CMD-SHELL", "curl -f ${LESSONS_INTERNAL_PROTOCOL}://${LESSONS_INTERNAL_HOST}:${LESSONS_INTERNAL_API_PORT}/health"]
+            [
+               "CMD-SHELL",
+               "curl -f ${LESSONS_INTERNAL_PROTOCOL}://${LESSONS_INTERNAL_HOST}:${LESSONS_INTERNAL_API_PORT}/actuator/health",
+            ]
          start_period: 80s
          interval: 10s
          timeout: 10s
@@ -289,7 +305,7 @@ services:
          test:
             [
                "CMD-SHELL",
-               "curl -f ${PROFESSORS_INTERNAL_PROTOCOL}://${PROFESSORS_INTERNAL_HOST}:${PROFESSORS_INTERNAL_API_PORT}/health",
+               "curl -f ${PROFESSORS_INTERNAL_PROTOCOL}://${PROFESSORS_INTERNAL_HOST}:${PROFESSORS_INTERNAL_API_PORT}/actuator/health",
             ]
          start_period: 80s
          interval: 10s
@@ -333,7 +349,7 @@ services:
          test:
             [
                "CMD-SHELL",
-               "curl -f ${RESERVATIONS_INTERNAL_PROTOCOL}://${RESERVATIONS_INTERNAL_HOST}:${RESERVATIONS_INTERNAL_API_PORT}/health",
+               "curl -f ${RESERVATIONS_INTERNAL_PROTOCOL}://${RESERVATIONS_INTERNAL_HOST}:${RESERVATIONS_INTERNAL_API_PORT}/actuator/health",
             ]
          start_period: 80s
          interval: 10s
@@ -377,7 +393,7 @@ services:
          test:
             [
                "CMD-SHELL",
-               "curl -f ${RESOURCES_INTERNAL_PROTOCOL}://${RESOURCES_INTERNAL_HOST}:${RESOURCES_INTERNAL_API_PORT}/health",
+               "curl -f ${RESOURCES_INTERNAL_PROTOCOL}://${RESOURCES_INTERNAL_HOST}:${RESOURCES_INTERNAL_API_PORT}/actuator/health",
             ]
          start_period: 80s
          interval: 10s
@@ -418,7 +434,11 @@ services:
          mongodb:
             condition: service_healthy
       healthcheck:
-         test: ["CMD-SHELL", "curl -f ${ROOMS_INTERNAL_PROTOCOL}://${ROOMS_INTERNAL_HOST}:${ROOMS_INTERNAL_API_PORT}/health"]
+         test:
+            [
+               "CMD-SHELL",
+               "curl -f ${ROOMS_INTERNAL_PROTOCOL}://${ROOMS_INTERNAL_HOST}:${ROOMS_INTERNAL_API_PORT}/actuator/health",
+            ]
          start_period: 80s
          interval: 10s
          timeout: 10s
@@ -461,7 +481,7 @@ services:
          test:
             [
                "CMD-SHELL",
-               "curl -f ${STUDENTS_INTERNAL_PROTOCOL}://${STUDENTS_INTERNAL_HOST}:${STUDENTS_INTERNAL_API_PORT}/health",
+               "curl -f ${STUDENTS_INTERNAL_PROTOCOL}://${STUDENTS_INTERNAL_HOST}:${STUDENTS_INTERNAL_API_PORT}/actuator/health",
             ]
          start_period: 80s
          interval: 10s
@@ -503,6 +523,10 @@ services:
          - STUDENTS_INTERNAL_PROTOCOL=${STUDENTS_INTERNAL_PROTOCOL}
          - STUDENTS_INTERNAL_HOST=${STUDENTS_INTERNAL_HOST}
          - STUDENTS_INTERNAL_API_PORT=${STUDENTS_INTERNAL_API_PORT}
+         - BFF_INTERNAL_API_PORT=${BFF_INTERNAL_API_PORT}
+         - FRONTEND_EXTERNAL_PROTOCOL=${FRONTEND_EXTERNAL_PROTOCOL}
+         - FRONTEND_EXTERNAL_HOST=${FRONTEND_EXTERNAL_HOST}
+         - FRONTEND_EXTERNAL_PORT=${FRONTEND_EXTERNAL_PORT}
       networks:
          - constrsw
       ports:
@@ -520,32 +544,47 @@ services:
          professors:
             condition: service_healthy
          reservations:
-            condition: service_healthy
+            condition: service_started
          resources:
             condition: service_healthy
          rooms:
-            condition: service_healthy
+            condition: service_started
          students:
             condition: service_healthy
       healthcheck:
-         test: ["CMD-SHELL", "curl -f ${BFF_INTERNAL_PROTOCOL}://${BFF_INTERNAL_HOST}:${BFF_INTERNAL_API_PORT}/health"]
+         test: ["CMD-SHELL", "curl -f ${BFF_INTERNAL_PROTOCOL}://${BFF_INTERNAL_HOST}:${BFF_INTERNAL_API_PORT}/actuator/health"]
          start_period: 90s
          interval: 10s
          timeout: 10s
          retries: 10
       restart: always
-   # # Frontend
-   # frontend:
-   #   container_name: frontend
-   #   build:
-   #     context: ./frontend/
-   #     dockerfile: Dockerfile
-   #   image: constrsw/frontend
-   #   ports:
-   #     - ${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}
-   #     - ${FRONTEND_EXTERNAL_DEBUG_PORT}:${FRONTEND_INTERNAL_DEBUG_PORT}
-   #   networks:
-   #     - constrsw
-   #   depends_on:
-   #     bff:
-   #       condition: service_healthy
+      # Frontend
+   frontend:
+      container_name: frontend
+      build:
+         context: ./frontend/
+         dockerfile: Dockerfile
+      environment:
+         - FRONTEND_EXTERNAL_HOST=${FRONTEND_EXTERNAL_HOST}
+         - FRONTEND_INTERNAL_PORT=${FRONTEND_INTERNAL_PORT}
+      image: constrsw/frontend
+      ports:
+         - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
+      networks:
+         - constrsw
+      depends_on:
+         bff:
+            condition: service_healthy
+      healthcheck:
+         test:
+            [
+               "CMD",
+               "curl",
+               "-f",
+               "${FRONTEND_INTERNAL_PROTOCOL}://${FRONTEND_INTERNAL_HOST}:${FRONTEND_INTERNAL_PORT}/nginx-health",
+            ]
+         interval: 30s
+         timeout: 10s
+         retries: 3
+         start_period: 40s
+      restart: always

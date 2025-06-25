@@ -3,6 +3,43 @@
     "configurations": [
         {
             "type": "node",
+            "name": "Frontend",
+            "request": "launch",
+            "program": "${workspaceFolder}/frontend/src/index.tsx",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["start"],
+            "cwd": "${workspaceFolder}/frontend",
+            "env": {
+                "REACT_APP_API_URL": "http://localhost:8182"
+            },
+            "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "type": "node",
+            "name": "BFF Service",
+            "request": "attach",
+            "address": "localhost",
+            "port": 8280,
+            "localRoot": "${workspaceFolder}/backend/bff",
+            "remoteRoot": "/usr/src/app",
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/backend/bff/**/*.js"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/backend/bff/**",
+                "!**/node_modules/**"
+            ]
+        },
+        {
+            "type": "node",
             "name": "OAuth Service",
             "request": "attach",
             "address": "localhost",
@@ -24,15 +61,147 @@
         },
         {
             "type": "java",
+            "name": "Classes Service",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8282,
+            "projectName": "constrsw-classes",
+            "sourcePaths": [
+                "${workspaceFolder}/backend/classes/src/main/java"
+            ],
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        },
+        {
+            "type": "java",
+            "name": "Courses Service",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8283,
+            "projectName": "constrsw-courses",
+            "sourcePaths": [
+                "${workspaceFolder}/backend/courses/src/main/java"
+            ],
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        },
+        {
+            "type": "python",
+            "name": "Lessons Service",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 8284
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/backend/lessons",
+                    "remoteRoot": "/app"
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            "type": "node",
+            "name": "Professors Service",
+            "request": "attach",
+            "address": "localhost",
+            "port": 8285,
+            "localRoot": "${workspaceFolder}/backend/professors",
+            "remoteRoot": "/app",
+            "restart": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/backend/professors/dist/**/*.js"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/backend/professors/**",
+                "!**/node_modules/**"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Reservations Service",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8286,
+            "projectName": "constrsw-reservations",
+            "sourcePaths": [
+                "${workspaceFolder}/backend/reservations/src/main/java"
+            ],
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        },
+        {
+            "type": "java",
             "name": "Resources Service",
             "request": "attach",
             "hostName": "localhost",
             "port": 8287,
-            "projectName": "constrsw/resources",
+            "projectName": "constrsw-resources",
             "sourcePaths": [
                 "${workspaceFolder}/backend/resources/src/main/java"
             ],
-            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9229"
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        },
+        {
+            "type": "java",
+            "name": "Rooms Service",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8288,
+            "projectName": "constrsw-rooms",
+            "sourcePaths": [
+                "${workspaceFolder}/backend/rooms/src/main/java"
+            ],
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        },
+        {
+            "type": "java",
+            "name": "Students Service",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8289,
+            "projectName": "constrsw-students",
+            "sourcePaths": [
+                "${workspaceFolder}/backend/students/src/main/java"
+            ],
+            "vmArgs": "-Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Backend Services",
+            "configurations": [
+                "BFF Service",
+                "OAuth Service",
+                "Classes Service",
+                "Courses Service",
+                "Lessons Service",
+                "Professors Service",
+                "Reservations Service",
+                "Resources Service",
+                "Rooms Service",
+                "Students Service",
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "Debug All Services",
+            "configurations": [
+                "Frontend",
+                "BFF Service",
+                "OAuth Service",
+                "Classes Service",
+                "Courses Service",
+                "Lessons Service",
+                "Professors Service",
+                "Reservations Service",
+                "Resources Service",
+                "Rooms Service",
+                "Students Service",
+            ],
+            "stopAll": true
         }
     ]
 }
