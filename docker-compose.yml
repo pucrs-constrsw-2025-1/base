@@ -279,6 +279,9 @@ services:
       - PROFESSORS_INTERNAL_HOST=${PROFESSORS_INTERNAL_HOST}
       - PROFESSORS_INTERNAL_API_PORT=${PROFESSORS_INTERNAL_API_PORT}
       - PROFESSORS_INTERNAL_DEBUG_PORT=${PROFESSORS_INTERNAL_DEBUG_PORT}
+      - FRONTEND_EXTERNAL_PROTOCOL=${FRONTEND_EXTERNAL_PROTOCOL}
+      - FRONTEND_EXTERNAL_HOST=${FRONTEND_EXTERNAL_HOST}
+      - FRONTEND_EXTERNAL_PORT=${FRONTEND_EXTERNAL_PORT}
     networks:
       - constrsw
     ports:
@@ -550,3 +553,17 @@ services:
       retries: 3
       start_period: 40s
     restart: always
+    develop:
+      watch:
+        # 1.  Send source-file edits straight into the running container
+        - action: sync
+          path: ./frontend/src           # host path (adjust if you use /app/src, etc.)
+          target: /usr/share/nginx/html  # container path that serves the built files
+          ignore:
+            - node_modules/
+            - dist/
+            - "*.log"
+
+        # 2.  Full image rebuild when “big” files change
+        - action: rebuild
+          path: ./frontend/package.json  # also catches tsconfig.json, vite.config.*, etc.
